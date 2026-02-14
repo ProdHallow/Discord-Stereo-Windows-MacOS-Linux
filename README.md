@@ -73,7 +73,7 @@ We analyze and improve stereo voice handling across Windows, macOS, and Linux â€
 
 - Ascend
 - Sentry
-- Sikimzo
+- **[Sikimzo](https://github.com/sikimzo)**
 ---
 
 ## ðŸ’¬ Get Involved
