@@ -3,6 +3,7 @@
 **Unlocking true stereo and high-bitrate voice across platforms**
 
 ![Focus](https://img.shields.io/badge/Focus-True%20Stereo%20Voice-5865F2?style=flat-square)
+
 ![Windows](https://img.shields.io/badge/Windows-Active-00C853?style=flat-square)
 ![macOS](https://img.shields.io/badge/macOS-WIP-FFA500?style=flat-square)
 ![Linux](https://img.shields.io/badge/Linux-WIP-FFA500?style=flat-square)
@@ -50,18 +51,14 @@ We analyze and improve stereo voice handling across Windows, macOS, and Linux �
 
 ---
 
-## 🔩 How It Works
-
-We patch Discord's `discord_voice.node` binary at specific memory offsets to bypass limitations:
-
-</details>
-
----
-
 ## 📂 Repositories
 
-- **[Discord-Node-Patcher-Feb-9-2026](https://github.com/ProdHallow/Discord-Node-Patcher-Feb-9-2026)** — Windows voice module patcher
-- *macOS/Linux tools coming soon*
+| Repository | Description | Status |
+|------------|-------------|:------:|
+| **[Discord-Node-Patcher](https://github.com/ProdHallow/Discord-Node-Patcher-Feb-9-2026)** | Windows voice module patcher | ✅ Active |
+| **[Discord-Stereo-Installer](https://github.com/ProdHallow/Discord-Stereo-Installer)** | Pre-patched binaries & installer | ✅ Active |
+| **macOS Patcher** | macOS voice module research | 🔧 WIP |
+| **Linux Patcher** | Linux voice module research | 🔧 WIP |
 
 ---
 
