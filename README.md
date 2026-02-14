@@ -65,7 +65,7 @@ We analyze and improve stereo voice handling across Windows, macOS, and Linux ‚Ä
 ## ü§ù Partners
 
 - **[Shaun (sh6un)](https://github.com/sh6un)**
-- **[UnpackedX (FxMDev)](https://github.com/FxMDev)** - [Discord-Voice.xyz](https://discord-voice.xyz/)
+- **[UnpackedX (FxMDev)](https://github.com/FxMDev)** - [discord-voice.xyz](https://discord-voice.xyz/)
 - **[Oracle (oracle-dsc)](https://github.com/oracle-dsc)**
 - **[Loof-sys](https://github.com/LOOF-sys)**
 - **[HorrorPills](https://github.com/HorrorPills)**
