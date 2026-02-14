@@ -72,6 +72,7 @@ We analyze and improve stereo voice handling across Windows, macOS, and Linux â€
 -  **[Hallow](https://github.com/ProdHallow)**
 
 - Ascend
+- BluesCat
 - Sentry
 - **[Sikimzo](https://github.com/sikimzo)**
 ---
