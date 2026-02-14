@@ -1,4 +1,4 @@
-Copyright © 2026 Filterless Audio Collective
+Copyright © 2026 Discord Audio Collective
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of the
 accompanying source files (including patching scripts, build tools, documentation,
