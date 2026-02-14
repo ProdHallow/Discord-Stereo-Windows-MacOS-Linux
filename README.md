@@ -1,4 +1,4 @@
-# 🎙️ Filterless Audio Collective
+# 🎙️ Discord Audio Collective
 
 **Unlocking true stereo and high-bitrate voice across platforms**
 
