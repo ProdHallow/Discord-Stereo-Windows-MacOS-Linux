@@ -71,7 +71,7 @@ We analyze and improve stereo voice handling across Windows, macOS, and Linux â€
 - **[HorrorPills](https://github.com/HorrorPills)**
 -  **[Hallow](https://github.com/ProdHallow)**
 
-- Ascend
+- **[Ascend](https://github.com/bloodybapestas)**
 - BluesCat
 - Sentry
 - **[Sikimzo](https://github.com/sikimzo)**
