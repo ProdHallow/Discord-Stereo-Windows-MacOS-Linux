@@ -2,6 +2,8 @@
 
 **Unlocking true stereo and high-bitrate voice across platforms**
 
+**⚠️INSTALLERS FOR MAC OS AND LINUX ARE NON FUNCTIONAL AS THEY ARE IN TESTING AND HAVE PLACEHOLDERS**
+
 ![Focus](https://img.shields.io/badge/Focus-True%20Stereo%20Voice-5865F2?style=flat-square)
 ![Windows](https://img.shields.io/badge/Windows-Active-00C853?style=flat-square)
 ![macOS](https://img.shields.io/badge/macOS-Beta-FFA500?style=flat-square)
