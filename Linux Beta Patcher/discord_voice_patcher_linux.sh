@@ -477,7 +477,10 @@ private:
         if (!PatchBytes(Offsets::HighpassCutoffFilter, (const char*)hp_cutoff, 0x100)) return false;
         if (!PatchBytes(Offsets::DcReject, (const char*)dc_reject, 0x1B6)) return false;
         if (!PatchBytes(Offsets::DownmixFunc, "\xC3", 1)) return false;
-        if (!PatchBytes(Offsets::AudioEncoderOpusConfigIsOk, "\xC3", 1)) return false;
+        // AudioEncoderOpusConfigIsOk returns bool — must return TRUE (1)
+        // Bare ret would leave eax=0 (from xor eax,eax prologue) = "config not ok"
+        // causing Discord to reject audio config and fall back to web mode
+        if (!PatchBytes(Offsets::AudioEncoderOpusConfigIsOk, "\xB8\x01\x00\x00\x00\xC3", 6)) return false;
         if (!PatchBytes(Offsets::ThrowError, "\xC3", 1)) return false;
 
         printf("  [5/5] Patching encoder config (512kbps at creation)...\n");
