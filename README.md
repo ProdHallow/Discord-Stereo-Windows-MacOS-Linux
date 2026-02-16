@@ -371,7 +371,7 @@ Manual hex editing works for a one-off patch, but breaks the moment Discord upda
 - **[Hallow](https://github.com/ProdHallow)**
 - **[Ascend](https://github.com/bloodybapestas)**
 - BluesCat
-- **[Sentry)(https://github.com/sentry1000)**
+- **[Sentry](https://github.com/sentry1000)**
 - **[Sikimzo](https://github.com/sikimzo)**
 
 ---
