@@ -54,6 +54,17 @@ OFFSET_EncoderConfigInit1=0x41BE4F
 OFFSET_EncoderConfigInit2=0x41B9C8
 FILE_OFFSET_ADJUSTMENT=0
 
+# Original bytes at validation sites — used to verify binary before patching
+# Must be updated alongside offsets when targeting a new build
+ORIG_Emulate48Khz='{0xFF, 0x0F, 0x11}'
+ORIG_AudioEncoderOpusConfigIsOk='{0x55, 0x48, 0x89, 0xE5, 0x41, 0x57, 0x41, 0x56}'
+ORIG_DownmixFunc='{0x55, 0x48, 0x89, 0xE5, 0x41, 0x57, 0x41, 0x56}'
+ORIG_HighPassFilter='{0x55, 0x48, 0x89, 0xE5}'
+ORIG_HighpassCutoffFilter='{0x55, 0x48, 0x89, 0xE5}'
+ORIG_DcReject='{0x55, 0x48, 0x89, 0xE5}'
+ORIG_EncoderConfigInit1='{0x00, 0x7D, 0x00, 0x00}'
+ORIG_EncoderConfigInit2='{0x00, 0x7D, 0x00, 0x00}'
+
 # Track overall success for conditional cleanup
 PATCH_SUCCESS=false
 
@@ -487,7 +498,23 @@ private:
     std::string modulePath;
 
     bool ApplyPatches(void* fileData, long long fileSize) {
-        printf("Applying patches...\n");
+        printf("Validating binary before patching...\n");
+
+        // File size range check — catches completely wrong files early
+        constexpr long long MIN_EXPECTED_SIZE = 40LL * 1024 * 1024;   // 40 MB
+        constexpr long long MAX_EXPECTED_SIZE = 70LL * 1024 * 1024;   // 70 MB
+        if (fileSize < MIN_EXPECTED_SIZE || fileSize > MAX_EXPECTED_SIZE) {
+            printf("ERROR: File size %.2f MB is outside expected range (40-70 MB)\n",
+                   fileSize / (1024.0 * 1024.0));
+            printf("This may not be the correct discord_voice.node for these offsets.\n");
+            return false;
+        }
+
+        auto CheckBytes = [&](uint32_t offset, const unsigned char* expected, size_t len) -> bool {
+            uint32_t fileOffset = offset - Offsets::FILE_OFFSET_ADJUSTMENT;
+            if ((long long)(fileOffset + len) > fileSize) return false;
+            return memcmp((char*)fileData + fileOffset, expected, len) == 0;
+        };
 
         auto PatchBytes = [&](uint32_t offset, const char* bytes, size_t len) -> bool {
             uint32_t fileOffset = offset - Offsets::FILE_OFFSET_ADJUSTMENT;
@@ -498,6 +525,58 @@ private:
             memcpy((char*)fileData + fileOffset, bytes, len);
             return true;
         };
+
+        // --- Pre-patch validation: check original bytes at key sites ---
+        const unsigned char orig_emulate48[]  = ORIG_VAL_Emulate48Khz;
+        const unsigned char orig_configisok[] = ORIG_VAL_AudioEncoderOpusConfigIsOk;
+        const unsigned char orig_downmix[]    = ORIG_VAL_DownmixFunc;
+        const unsigned char orig_hpfilter[]   = ORIG_VAL_HighPassFilter;
+        const unsigned char orig_hpcutoff[]   = ORIG_VAL_HighpassCutoffFilter;
+        const unsigned char orig_dcreject[]   = ORIG_VAL_DcReject;
+        const unsigned char orig_encconf1[]   = ORIG_VAL_EncoderConfigInit1;
+        const unsigned char orig_encconf2[]   = ORIG_VAL_EncoderConfigInit2;
+
+        // Check for already-patched state
+        const unsigned char patched_48khz[]    = {0x90, 0x90, 0x90};
+        const unsigned char patched_configok[] = {0x48, 0xC7, 0xC0, 0x01};
+        const unsigned char patched_downmix[]  = {0xC3};
+
+        bool p1 = CheckBytes(Offsets::Emulate48Khz, patched_48khz, 3);
+        bool p2 = CheckBytes(Offsets::AudioEncoderOpusConfigIsOk, patched_configok, 4);
+        bool p3 = CheckBytes(Offsets::DownmixFunc, patched_downmix, 1);
+
+        if (p1 && p2 && p3) {
+            printf("  NOTE: Binary appears to be already patched.\n");
+            printf("  Re-patching to ensure all patches are applied...\n\n");
+        } else {
+            bool o1 = CheckBytes(Offsets::Emulate48Khz, orig_emulate48, sizeof(orig_emulate48));
+            bool o2 = CheckBytes(Offsets::AudioEncoderOpusConfigIsOk, orig_configisok, sizeof(orig_configisok));
+            bool o3 = CheckBytes(Offsets::DownmixFunc, orig_downmix, sizeof(orig_downmix));
+            bool o4 = CheckBytes(Offsets::HighPassFilter, orig_hpfilter, sizeof(orig_hpfilter));
+            bool o5 = CheckBytes(Offsets::HighpassCutoffFilter, orig_hpcutoff, sizeof(orig_hpcutoff));
+            bool o6 = CheckBytes(Offsets::DcReject, orig_dcreject, sizeof(orig_dcreject));
+            bool o7 = CheckBytes(Offsets::EncoderConfigInit1, orig_encconf1, sizeof(orig_encconf1));
+            bool o8 = CheckBytes(Offsets::EncoderConfigInit2, orig_encconf2, sizeof(orig_encconf2));
+
+            printf("  Emulate48Khz           (0x%06X): %s\n", Offsets::Emulate48Khz, o1 ? "OK" : "MISMATCH");
+            printf("  AudioEncoderConfigIsOk (0x%06X): %s\n", Offsets::AudioEncoderOpusConfigIsOk, o2 ? "OK" : "MISMATCH");
+            printf("  DownmixFunc            (0x%06X): %s\n", Offsets::DownmixFunc, o3 ? "OK" : "MISMATCH");
+            printf("  HighPassFilter         (0x%06X): %s\n", Offsets::HighPassFilter, o4 ? "OK" : "MISMATCH");
+            printf("  HighpassCutoffFilter   (0x%06X): %s\n", Offsets::HighpassCutoffFilter, o5 ? "OK" : "MISMATCH");
+            printf("  DcReject               (0x%06X): %s\n", Offsets::DcReject, o6 ? "OK" : "MISMATCH");
+            printf("  EncoderConfigInit1     (0x%06X): %s\n", Offsets::EncoderConfigInit1, o7 ? "OK" : "MISMATCH");
+            printf("  EncoderConfigInit2     (0x%06X): %s\n", Offsets::EncoderConfigInit2, o8 ? "OK" : "MISMATCH");
+
+            if (!o1 || !o2 || !o3 || !o4 || !o5 || !o6 || !o7 || !o8) {
+                printf("\nERROR: Binary validation FAILED — unexpected bytes at patch sites.\n");
+                printf("This discord_voice.node does not match the expected build.\n");
+                printf("These offsets cannot be safely applied to a different version.\n");
+                return false;
+            }
+            printf("  All validation checks PASSED.\n\n");
+        }
+
+        printf("Applying patches...\n");
 
         printf("  [1/5] Enabling stereo audio...\n");
         if (!PatchBytes(Offsets::EmulateStereoSuccess1, "\x02", 1)) return false;
@@ -520,7 +599,10 @@ private:
         if (!PatchBytes(Offsets::HighpassCutoffFilter, (const char*)hp_cutoff, 0x100)) return false;
         if (!PatchBytes(Offsets::DcReject, (const char*)dc_reject, 0x1B6)) return false;
         if (!PatchBytes(Offsets::DownmixFunc, "\xC3", 1)) return false;
-        if (!PatchBytes(Offsets::AudioEncoderOpusConfigIsOk, "\xC3", 1)) return false;
+        // AudioEncoderOpusConfigIsOk returns bool — must return TRUE (1)
+        // Using mov rax,1; ret (8 bytes) matching Windows patcher approach
+        if (!PatchBytes(Offsets::AudioEncoderOpusConfigIsOk,
+            "\x48\xC7\xC0\x01\x00\x00\x00\xC3", 8)) return false;
         if (!PatchBytes(Offsets::ThrowError, "\xC3", 1)) return false;
 
         printf("  [5/5] Patching encoder config (512kbps at creation)...\n");
@@ -632,6 +714,16 @@ PATCHEOF
     sed -i '' "s/OFFSET_VAL_EncoderConfigInit1/${OFFSET_EncoderConfigInit1}/g" "$TEMP_DIR/patcher.cpp"
     sed -i '' "s/OFFSET_VAL_EncoderConfigInit2/${OFFSET_EncoderConfigInit2}/g" "$TEMP_DIR/patcher.cpp"
     sed -i '' "s/OFFSET_VAL_FileAdjustment/$FILE_OFFSET_ADJUSTMENT/g" "$TEMP_DIR/patcher.cpp"
+
+    # Substitute original-byte validation arrays
+    sed -i '' "s|ORIG_VAL_Emulate48Khz|$ORIG_Emulate48Khz|g" "$TEMP_DIR/patcher.cpp"
+    sed -i '' "s|ORIG_VAL_AudioEncoderOpusConfigIsOk|$ORIG_AudioEncoderOpusConfigIsOk|g" "$TEMP_DIR/patcher.cpp"
+    sed -i '' "s|ORIG_VAL_DownmixFunc|$ORIG_DownmixFunc|g" "$TEMP_DIR/patcher.cpp"
+    sed -i '' "s|ORIG_VAL_HighPassFilter|$ORIG_HighPassFilter|g" "$TEMP_DIR/patcher.cpp"
+    sed -i '' "s|ORIG_VAL_HighpassCutoffFilter|$ORIG_HighpassCutoffFilter|g" "$TEMP_DIR/patcher.cpp"
+    sed -i '' "s|ORIG_VAL_DcReject|$ORIG_DcReject|g" "$TEMP_DIR/patcher.cpp"
+    sed -i '' "s|ORIG_VAL_EncoderConfigInit1|$ORIG_EncoderConfigInit1|g" "$TEMP_DIR/patcher.cpp"
+    sed -i '' "s|ORIG_VAL_EncoderConfigInit2|$ORIG_EncoderConfigInit2|g" "$TEMP_DIR/patcher.cpp"
 }
 
 # ─── Compilation ──────────────────────────────────────────────────────────────
