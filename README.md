@@ -3,10 +3,9 @@
 **Unlocking true stereo and high-bitrate voice across platforms**
 
 ![Focus](https://img.shields.io/badge/Focus-True%20Stereo%20Voice-5865F2?style=flat-square)
-
 ![Windows](https://img.shields.io/badge/Windows-Active-00C853?style=flat-square)
-![macOS](https://img.shields.io/badge/macOS-WIP-FFA500?style=flat-square)
-![Linux](https://img.shields.io/badge/Linux-WIP-FFA500?style=flat-square)
+![macOS](https://img.shields.io/badge/macOS-Beta-FFA500?style=flat-square)
+![Linux](https://img.shields.io/badge/Linux-Beta-FFA500?style=flat-square)
 
 ---
 
@@ -34,9 +33,9 @@ We analyze and improve stereo voice handling across Windows, macOS, and Linux �
 
 | Platform | Status | Notes |
 |----------|:------:|-------|
-| **Windows** | ✅ Active | Full support |
-| **macOS** | 🔧 WIP | In development |
-| **Linux** | 🔧 WIP | In development |
+| **Windows** | ✅ Active | Full support — GUI patcher with multi-client detection |
+| **macOS** | 🧪 Beta | Bash patcher with auto-detection, code signing handling, Apple Silicon support |
+| **Linux** | 🧪 Beta | Bash patcher with auto-detection — deb, Flatpak, Snap supported |
 
 ---
 
@@ -57,8 +56,14 @@ We analyze and improve stereo voice handling across Windows, macOS, and Linux �
 |------------|-------------|:------:|
 | **[Discord-Node-Patcher](https://github.com/ProdHallow/Discord-Node-Patcher-Feb-9-2026)** | Windows voice module patcher | ✅ Active |
 | **[Discord-Stereo-Installer](https://github.com/ProdHallow/Discord-Stereo-Installer)** | Pre-patched binaries & installer | ✅ Active |
-| **macOS Patcher** | macOS voice module research | 🔧 WIP |
-| **Linux Patcher** | Linux voice module research | 🔧 WIP |
+| **[macOS Beta Patcher](https://github.com/ProdHallow/Discord-Stereo-Windows-MacOS-Linux/tree/main/MacOS%20BETA%20PATCHER)** | macOS voice module patcher | 🧪 Beta |
+| **[Linux Beta Patcher](https://github.com/ProdHallow/Discord-Stereo-Windows-MacOS-Linux/tree/main/Linux%20Beta%20Patcher)** | Linux voice module patcher | 🧪 Beta |
+
+---
+
+## 🛠️ Cross-Platform Offset Finder
+
+All three patchers are powered by the same **automated offset discovery** tool — a Python-based signature scanner that locates all 18 patch targets across PE (Windows), ELF (Linux), and Mach-O (macOS) binaries. When Discord updates, run the finder against the new `discord_voice.node` and paste the output directly into your platform's patcher.
 
 ---
 
@@ -69,12 +74,12 @@ We analyze and improve stereo voice handling across Windows, macOS, and Linux �
 - **[Oracle (oracle-dsc)](https://github.com/oracle-dsc)**
 - **[Loof-sys](https://github.com/LOOF-sys)**
 - **[HorrorPills](https://github.com/HorrorPills)**
--  **[Hallow](https://github.com/ProdHallow)**
-
+- **[Hallow](https://github.com/ProdHallow)**
 - **[Ascend](https://github.com/bloodybapestas)**
 - BluesCat
 - Sentry
 - **[Sikimzo](https://github.com/sikimzo)**
+
 ---
 
 ## 💬 Get Involved
