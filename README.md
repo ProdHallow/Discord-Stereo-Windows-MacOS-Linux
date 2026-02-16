@@ -388,6 +388,6 @@ Found new offsets? Have test results? Want to help reverse engineer macOS/Linux 
 
 <div align="center">
 
-**[Report Issue](https://github.com/ProdHallow/Discord-Node-Patcher-Feb-9-2026/issues)** • **[Join the Discussion](https://github.com/ProdHallow)**
+**[Report Issue](https://github.com/ProdHallow/Discord-Node-Patcher-Feb-9-2026/issues)** • **[Join the Development Discord](https://discord.gg/gDY6F8RAfM)**
 
 </div>
