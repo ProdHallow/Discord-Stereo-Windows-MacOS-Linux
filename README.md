@@ -373,6 +373,8 @@ Manual hex editing works for a one-off patch, but breaks the moment Discord upda
 - BluesCat
 - **[Sentry](https://github.com/sentry1000)**
 - **[Sikimzo](https://github.com/sikimzo)**
+- THE MF GOAT **CRÜE**
+- THE OTHER GOAT **Geeko**
 
 ---
 
