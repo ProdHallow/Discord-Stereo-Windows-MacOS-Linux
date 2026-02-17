@@ -364,7 +364,7 @@ Manual hex editing works for a one-off patch, but breaks the moment Discord upda
 ## 🤝 Partners
 
 - **[Shaun (sh6un)](https://github.com/sh6un)**
-- **[UnpackedX (FxMDev)](https://github.com/FxMDev)** - [discord-voice.xyz](https://discord-voice.xyz/)
+- **[UnpackedX (FxMDev)](https://github.com/FxMDev)** - [Voice Playgrounds Site](https://discord-voice.xyz/)
 - **[Oracle (oracle-dsc)](https://github.com/oracle-dsc)**
 - **[Loof-sys](https://github.com/LOOF-sys)**
 - **[HorrorPills](https://github.com/HorrorPills)**
