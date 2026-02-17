@@ -60,8 +60,8 @@ We analyze and improve stereo voice handling across Windows, macOS, and Linux �
 |------------|-------------|:------:|
 | **[Discord-Node-Patcher](https://github.com/ProdHallow/Discord-Node-Patcher-Feb-9-2026)** | Windows voice module patcher | ✅ Active |
 | **[Discord-Stereo-Installer](https://github.com/ProdHallow/Discord-Stereo-Installer)** | Pre-patched binaries & installer | ✅ Active |
-| **[macOS Beta Patcher](https://github.com/ProdHallow/Discord-Stereo-Windows-MacOS-Linux/tree/main/MacOS%20BETA%20PATCHER)** | macOS voice module patcher | 🧪 Beta |
-| **[Linux Beta Patcher](https://github.com/ProdHallow/Discord-Stereo-Windows-MacOS-Linux/tree/main/Linux%20Beta%20Patcher)** | Linux voice module patcher | 🧪 Beta |
+| **[macOS Beta Patcher](https://github.com/ProdHallow/Discord-Stereo-Windows-MacOS-Linux/tree/main/MacOS%20BETA%20PATCHER)** | macOS voice module patcher | ✅ Active |
+| **[Linux Beta Patcher](https://github.com/ProdHallow/Discord-Stereo-Windows-MacOS-Linux/tree/main/Linux%20Beta%20Patcher)** | Linux voice module patcher | ✅ Active |
 
 ---
 
