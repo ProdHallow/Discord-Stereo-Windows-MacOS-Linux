@@ -10,6 +10,13 @@
 ![macOS](https://img.shields.io/badge/MacOS-Active-00C853?style=flat-square)
 ![Linux](https://img.shields.io/badge/Linux-Active-00C853?style=flat-square)
 
+---
+
+## 🙌 Special Thanks
+
+> Massive shoutout to **Crüe and Geeko** for their insane dedication and work on macOS.  
+> The macOS build exists entirely because of their efforts and six months of relentless grinding.  
+> As a two-person team, they put in immense time, energy, and commitment to make it happen. Absolute respect.
 
 ---
 
