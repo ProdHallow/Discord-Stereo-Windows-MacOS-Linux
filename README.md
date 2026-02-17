@@ -38,8 +38,8 @@ We analyze and improve stereo voice handling across Windows, macOS, and Linux �
 | Platform | Status | Notes |
 |----------|:------:|-------|
 | **Windows** | ✅ Active | Full support — GUI patcher with multi-client detection |
-| **macOS** | 🧪 Beta | Bash patcher with auto-detection, code signing handling, Apple Silicon support |
-| **Linux** | 🧪 Beta | Bash patcher with auto-detection — deb, Flatpak, Snap supported |
+| **macOS** | ✅ Active | Bash patcher with auto-detection, code signing handling, Apple Silicon support |
+| **Linux** | ✅ Active | Bash patcher with auto-detection — deb, Flatpak, Snap supported |
 
 ---
 
