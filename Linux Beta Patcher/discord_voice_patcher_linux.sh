@@ -43,7 +43,7 @@ OFFSET_EmulateStereoSuccess2=0x2186EF
 OFFSET_EmulateBitrateModified=0x218B4D
 OFFSET_SetsBitrateBitrateValue=0x1D1C65
 OFFSET_SetsBitrateBitwiseOr=0x1D1C6D
-OFFSET_Emulate48Khz=0x218856
+OFFSET_Emulate48Khz=0x218790
 OFFSET_HighPassFilter=0x5835E0
 OFFSET_HighpassCutoffFilter=0x5E16C0
 OFFSET_DcReject=0x5E1870
@@ -57,7 +57,7 @@ FILE_OFFSET_ADJUSTMENT=0
 
 # Original bytes at validation sites — used to verify binary before patching
 # Must be updated alongside offsets when targeting a new build
-ORIG_Emulate48Khz='{0x00, 0x06, 0x48}'
+ORIG_Emulate48Khz='{0x0F, 0x43, 0xD0}'
 ORIG_AudioEncoderOpusConfigIsOk='{0x55, 0x48, 0x89, 0xE5, 0x8B, 0x0F, 0x31, 0xC0}'
 ORIG_DownmixFunc='{0x55, 0x48, 0x89, 0xE5, 0x41, 0x57, 0x41, 0x56}'
 ORIG_HighPassFilter='{0x55, 0x48, 0x89, 0xE5}'
