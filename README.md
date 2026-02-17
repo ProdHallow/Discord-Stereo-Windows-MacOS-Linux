@@ -7,8 +7,8 @@
 ![Focus](https://img.shields.io/badge/Focus-True%20Stereo%20Voice-5865F2?style=flat-square)
 [![Voice Playground](https://img.shields.io/badge/Voice%20Playground-Labs-white?style=flat-square&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjEwIi8+PGxpbmUgeDE9IjIiIHkxPSIxMiIgeDI9IjIyIiB5Mj0iMTIiLz48cGF0aCBkPSJNMTIgMmExNS4zIDE1LjMgMCAwIDEgNCAxMCAxNS4zIDE1LjMgMCAwIDEtNCAxMCAxNS4zIDE1LjMgMCAwIDEtNC0xMCAxNS4zIDE1LjMgMCAwIDEgNC0xMHoiLz48L3N2Zz4=)](https://discord-voice.xyz/)
 ![Windows](https://img.shields.io/badge/Windows-Active-00C853?style=flat-square)
-![macOS](https://img.shields.io/badge/Windows-Active-00C853?style=flat-square)
-![Linux](https://img.shields.io/badge/Windows-Active-00C853?style=flat-square)
+![macOS](https://img.shields.io/badge/MacOS-Active-00C853?style=flat-square)
+![Linux](https://img.shields.io/badge/Linux-Active-00C853?style=flat-square)
 
 
 ---
