@@ -14,7 +14,7 @@
 
 ## 🙌 Special Thanks
 
-> Massive shoutout to **Crüe and Geeko** for their insane dedication and work on macOS.  
+> Massive shoutout to **Crüe and HorrorPills/Geeko** for their insane dedication and work on macOS.  
 > The macOS build exists entirely because of their efforts and six months of relentless grinding.  
 > As a two-person team, they put in immense time, energy, and commitment to make it happen. Absolute respect.
 
@@ -374,7 +374,7 @@ Manual hex editing works for a one-off patch, but breaks the moment Discord upda
 - **[UnpackedX](https://codeberg.org/UnpackedX)** - [Voice Playgrounds Site](https://discord-voice.xyz/)
 - **[Oracle (oracle-dsc)](https://github.com/oracle-dsc)**
 - **[Loof-sys](https://github.com/LOOF-sys)**
-- **[HorrorPills](https://github.com/HorrorPills)**
+- **[HorrorPills / Geeko](https://github.com/HorrorPills)**
 - **[Hallow](https://github.com/ProdHallow)**
 - **[Ascend](https://github.com/bloodybapestas)**
 - BluesCat
