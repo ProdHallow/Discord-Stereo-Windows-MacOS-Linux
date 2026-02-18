@@ -1089,7 +1089,7 @@ check_script_update() {
 
     if curl -sS --fail -L -o "$tmp_script" "$UPDATE_URL" 2>/dev/null; then
         local remote_version
-        remote_version=$(grep '^SCRIPT_VERSION=' "$tmp_script" 2>/dev/null | head -1 | cut -d'"' -f2)
+        remote_version=$(grep '^SCRIPT_VERSION=' "$tmp_script" 2>/dev/null | head -1 | cut -d'"' -f2 || true)
 
         if [[ -n "$remote_version" ]] && [[ "$remote_version" != "$SCRIPT_VERSION" ]]; then
             status "[!] Script update available: v$SCRIPT_VERSION → v$remote_version" yellow
@@ -1691,7 +1691,7 @@ run_interactive() {
             5) menu_check_updates ;;
             6) run_diagnostics ;;
             7) cleanup_invalid_backups ;;
-            8) check_script_update ;;
+            8) check_script_update || true ;;
             9) echo "  Backups: $APP_DATA_ROOT"; command -v xdg-open &>/dev/null && xdg-open "$APP_DATA_ROOT" 2>/dev/null || true ;;
             Q) save_settings; echo "Goodbye!"; exit 0 ;;
             *) echo -e "  ${RED}Invalid choice${NC}" ;;

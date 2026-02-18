@@ -284,7 +284,7 @@ restore_from_backup() {
 
     read -rp "Select backup (1-${#backups[@]}, Enter for most recent): " sel
     if [[ -z "$sel" ]]; then sel=1; fi
-    if (( sel < 1 || sel > ${#backups[@]} )); then
+    if [[ ! "$sel" =~ ^[0-9]+$ ]] || (( sel < 1 || sel > ${#backups[@]} )); then
         log_error "Invalid selection"; exit 1
     fi
     local backup_file="${backups[$(( sel - 1 ))]}"
@@ -297,6 +297,9 @@ restore_from_backup() {
     echo ""
     read -rp "Restore to which client? (1-${#CLIENT_NAMES[@]}): " csel
     if [[ -z "$csel" ]]; then csel=1; fi
+    if [[ ! "$csel" =~ ^[0-9]+$ ]] || (( csel < 1 || csel > ${#CLIENT_NAMES[@]} )); then
+        log_error "Invalid client selection"; exit 1
+    fi
     local target="${CLIENT_NODES[$(( csel - 1 ))]}"
 
     read -rp "Replace $target with backup? (y/N): " confirm
@@ -589,7 +592,7 @@ compile_patcher() {
         # On Apple Silicon, Discord runs x86_64 via Rosetta
         # The patcher itself can be native ARM, but the injected code
         # (hp_cutoff, dc_reject) must be compiled for x86_64
-        log_warn "Apple Silicon detected — compiling for x86_64 (Rosetta)"
+        log_warn "Apple Silicon detected — compiling for x86_64 (Rosetta)" >&2
         arch_flags="-arch x86_64"
     fi
 
@@ -629,6 +632,9 @@ select_clients() {
         [cC]) log_warn "Cancelled"; exit 0 ;;
         [aA]) return 255 ;;  # patch all
         [0-9]*)
+            if [[ ! "$choice" =~ ^[0-9]+$ ]]; then
+                log_error "Invalid selection"; exit 1
+            fi
             if (( choice >= 1 && choice <= ${#CLIENT_NAMES[@]} )); then
                 return $(( choice - 1 ))
             fi
@@ -733,9 +739,9 @@ main() {
         total=${#CLIENT_NAMES[@]}
         for i in "${!CLIENT_NAMES[@]}"; do
             if patch_client "$i"; then
-                (( success++ ))
+                success=$(( success + 1 ))
             else
-                (( failed++ ))
+                failed=$(( failed + 1 ))
             fi
         done
     else
