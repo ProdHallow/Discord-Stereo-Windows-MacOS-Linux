@@ -78,7 +78,7 @@ ensure_dir() { [[ -d "$1" ]] || mkdir -p "$1" 2>/dev/null || true; }
 rotate_log() {
     if [[ -f "$LOG_FILE" ]]; then
         local size_kb
-        size_kb=$(du -k "$LOG_FILE" 2>/dev/null | cut -f1)
+        size_kb=$(du -k "$LOG_FILE" 2>/dev/null | cut -f1 || echo "0")
         if [[ "${size_kb:-0}" -gt $(( MAX_LOG_SIZE_MB * 1024 )) ]]; then
             mv "$LOG_FILE" "${LOG_FILE}.old" 2>/dev/null || true
         fi
@@ -154,7 +154,7 @@ check_dependencies() {
 # ─── Settings Management ─────────────────────────────────────────────────────
 load_settings() {
     if [[ -f "$SETTINGS_FILE" ]]; then
-        AUTO_RESTART_DISCORD=$(jq -r '.AutoStartDiscord // true' "$SETTINGS_FILE" 2>/dev/null)
+        AUTO_RESTART_DISCORD=$(jq -r '.AutoStartDiscord // true' "$SETTINGS_FILE" 2>/dev/null || echo "true")
         [[ "$AUTO_RESTART_DISCORD" == "true" ]] && AUTO_RESTART_DISCORD=true || AUTO_RESTART_DISCORD=false
     fi
 }
@@ -244,13 +244,13 @@ find_voice_module() {
     local base="$1"
     # Pattern 1: Electron auto-update structure (config dir with app-*/modules/discord_voice/)
     local app_dirs
-    app_dirs=$(find "$base" -maxdepth 1 -type d -name "app-*" 2>/dev/null | sort -V -r)
+    app_dirs=$(find "$base" -maxdepth 1 -type d -name "app-*" 2>/dev/null | sort -V -r || true)
     if [[ -n "$app_dirs" ]]; then
         while IFS= read -r app_dir; do
             local modules_dir="$app_dir/modules"
             if [[ -d "$modules_dir" ]]; then
                 local voice_dir
-                voice_dir=$(find "$modules_dir" -maxdepth 1 -type d -name "discord_voice*" 2>/dev/null | head -1)
+                voice_dir=$(find "$modules_dir" -maxdepth 1 -type d -name "discord_voice*" 2>/dev/null | head -1 || true)
                 if [[ -n "$voice_dir" ]]; then
                     if [[ -d "$voice_dir/discord_voice" ]]; then
                         echo "$voice_dir/discord_voice|$app_dir"
@@ -265,7 +265,7 @@ find_voice_module() {
 
     # Pattern 2: Direct search for discord_voice.node
     local node_file
-    node_file=$(find "$base" -maxdepth 6 -name "discord_voice.node" -type f 2>/dev/null | head -1)
+    node_file=$(find "$base" -maxdepth 6 -name "discord_voice.node" -type f 2>/dev/null | head -1 || true)
     if [[ -n "$node_file" ]]; then
         local voice_dir
         voice_dir=$(dirname "$node_file")
@@ -289,10 +289,10 @@ get_app_version() {
 get_node_info() {
     local voice_path="$1"
     local node_file
-    node_file=$(find "$voice_path" -name "*.node" -type f 2>/dev/null | head -1)
+    node_file=$(find "$voice_path" -name "*.node" -type f 2>/dev/null | head -1 || true)
     if [[ -n "$node_file" ]]; then
         local hash size
-        hash=$(md5sum "$node_file" 2>/dev/null | cut -d' ' -f1)
+        hash=$(md5sum "$node_file" 2>/dev/null | cut -d' ' -f1 || true)
         size=$(stat -c%s "$node_file" 2>/dev/null || echo "0")
         echo "${hash}|${size}"
     else
@@ -515,12 +515,12 @@ backup_has_content() {
 
     # Check for critical files (.node or .so)
     local count
-    count=$(find "$voice_dir" -type f \( -name "*.node" -o -name "*.so" -o -name "*.dll" \) 2>/dev/null | wc -l)
+    count=$(find "$voice_dir" -type f \( -name "*.node" -o -name "*.so" -o -name "*.dll" \) 2>/dev/null | wc -l || echo "0")
     [[ $count -gt 0 ]] || return 1
 
     # Check none are empty (0 bytes)
     local empty_count
-    empty_count=$(find "$voice_dir" -type f \( -name "*.node" -o -name "*.so" \) -empty 2>/dev/null | wc -l)
+    empty_count=$(find "$voice_dir" -type f \( -name "*.node" -o -name "*.so" \) -empty 2>/dev/null | wc -l || echo "0")
     if [[ $empty_count -gt 0 ]]; then
         log_file "WARN" "Backup has $empty_count empty critical files: $backup_path"
         return 1
@@ -528,7 +528,7 @@ backup_has_content() {
 
     # Check .node file is reasonable size (>1KB)
     local node_file
-    node_file=$(find "$voice_dir" -name "*.node" -type f 2>/dev/null | head -1)
+    node_file=$(find "$voice_dir" -name "*.node" -type f 2>/dev/null | head -1 || true)
     if [[ -n "$node_file" ]]; then
         local fsize
         fsize=$(stat -c%s "$node_file" 2>/dev/null || echo "0")
@@ -557,7 +557,7 @@ validate_backup_integrity() {
     fi
 
     local cn
-    cn=$(jq -r '.ClientName // empty' "$meta" 2>/dev/null)
+    cn=$(jq -r '.ClientName // empty' "$meta" 2>/dev/null || true)
     if [[ -z "$cn" ]]; then
         echo "INVALID|Missing ClientName in metadata"
         return
@@ -597,7 +597,7 @@ create_original_backup() {
     fi
 
     local file_count
-    file_count=$(find "$voice_path" -type f 2>/dev/null | wc -l)
+    file_count=$(find "$voice_path" -type f 2>/dev/null | wc -l || echo "0")
     if [[ $file_count -eq 0 ]]; then
         status "  [!] Voice folder is empty, cannot create backup" orange
         return 1
@@ -605,7 +605,7 @@ create_original_backup() {
 
     # Disk space check
     local needed_mb
-    needed_mb=$(du -sm "$voice_path" 2>/dev/null | cut -f1)
+    needed_mb=$(du -sm "$voice_path" 2>/dev/null | cut -f1 || echo "0")
     needed_mb=$(( needed_mb + 10 ))
     if ! check_disk_space "$ORIGINAL_BACKUP_ROOT" "$needed_mb"; then
         return 1
@@ -622,8 +622,8 @@ create_original_backup() {
     fi
 
     local total_size node_hash
-    total_size=$(du -sh "$backup_path/voice_module" 2>/dev/null | cut -f1)
-    node_hash=$(find "$backup_path/voice_module" -name "*.node" -type f -exec md5sum {} \; 2>/dev/null | head -1 | cut -d' ' -f1)
+    total_size=$(du -sh "$backup_path/voice_module" 2>/dev/null | cut -f1 || echo "unknown")
+    node_hash=$(find "$backup_path/voice_module" -name "*.node" -type f -exec md5sum {} \; 2>/dev/null | head -1 | cut -d' ' -f1 || true)
 
     cat > "$backup_path/metadata.json" << EOF
 {
@@ -665,7 +665,7 @@ create_voice_backup() {
     fi
 
     local file_count
-    file_count=$(find "$voice_path" -type f 2>/dev/null | wc -l)
+    file_count=$(find "$voice_path" -type f 2>/dev/null | wc -l || echo "0")
     if [[ $file_count -eq 0 ]]; then
         status "  [!] Voice folder is empty" orange
         return 1
@@ -682,7 +682,7 @@ create_voice_backup() {
     fi
 
     local node_hash
-    node_hash=$(find "$backup_path/voice_module" -name "*.node" -type f -exec md5sum {} \; 2>/dev/null | head -1 | cut -d' ' -f1)
+    node_hash=$(find "$backup_path/voice_module" -name "*.node" -type f -exec md5sum {} \; 2>/dev/null | head -1 | cut -d' ' -f1 || true)
 
     cat > "$backup_path/metadata.json" << EOF
 {
@@ -708,7 +708,7 @@ remove_old_backups() {
         local meta="$dir/metadata.json"
         [[ -f "$meta" ]] || continue
         local cn
-        cn=$(jq -r '.ClientName // empty' "$meta" 2>/dev/null)
+        cn=$(jq -r '.ClientName // empty' "$meta" 2>/dev/null || true)
         [[ -n "$cn" ]] || continue
 
         local found=false
@@ -728,7 +728,7 @@ remove_old_backups() {
             local meta="$dir/metadata.json"
             [[ -f "$meta" ]] || continue
             local this_cn
-            this_cn=$(jq -r '.ClientName // empty' "$meta" 2>/dev/null)
+            this_cn=$(jq -r '.ClientName // empty' "$meta" 2>/dev/null || true)
             [[ "$this_cn" == "$cn" ]] && dirs+=("$dir")
         done
 
@@ -810,9 +810,9 @@ list_backups() {
         [[ "${validation%%|*}" == "VALID" ]] || continue
 
         local cn av bd
-        cn=$(jq -r '.ClientName // "Unknown"' "$meta" 2>/dev/null)
-        av=$(jq -r '.AppVersion // "?"' "$meta" 2>/dev/null)
-        bd=$(jq -r '.BackupDate // "?"' "$meta" 2>/dev/null)
+        cn=$(jq -r '.ClientName // "Unknown"' "$meta" 2>/dev/null || echo "Unknown")
+        av=$(jq -r '.AppVersion // "?"' "$meta" 2>/dev/null || echo "?")
+        bd=$(jq -r '.BackupDate // "?"' "$meta" 2>/dev/null || echo "?")
         local bd_fmt
         bd_fmt=$(date -d "$bd" '+%b %d, %Y %H:%M' 2>/dev/null || echo "$bd")
         echo "ORIGINAL|$dir|$cn|$av|$bd_fmt"
@@ -830,9 +830,9 @@ list_backups() {
         [[ "${validation%%|*}" == "VALID" ]] || continue
 
         local cn av bd
-        cn=$(jq -r '.ClientName // "Unknown"' "$meta" 2>/dev/null)
-        av=$(jq -r '.AppVersion // "?"' "$meta" 2>/dev/null)
-        bd=$(jq -r '.BackupDate // "?"' "$meta" 2>/dev/null)
+        cn=$(jq -r '.ClientName // "Unknown"' "$meta" 2>/dev/null || echo "Unknown")
+        av=$(jq -r '.AppVersion // "?"' "$meta" 2>/dev/null || echo "?")
+        bd=$(jq -r '.BackupDate // "?"' "$meta" 2>/dev/null || echo "?")
         local bd_fmt
         bd_fmt=$(date -d "$bd" '+%b %d, %Y %H:%M' 2>/dev/null || echo "$bd")
         echo "BACKUP|$dir|$cn|$av|$bd_fmt"
@@ -937,9 +937,9 @@ download_voice_files() {
 
         # Parse JSON array of files
         local file_names file_urls file_sizes
-        file_names=$(echo "$api_response" | jq -r '.[] | select(.type == "file") | .name' 2>/dev/null)
-        file_urls=$(echo "$api_response" | jq -r '.[] | select(.type == "file") | .download_url' 2>/dev/null)
-        file_sizes=$(echo "$api_response" | jq -r '.[] | select(.type == "file") | .size' 2>/dev/null)
+        file_names=$(echo "$api_response" | jq -r '.[] | select(.type == "file") | .name' 2>/dev/null || true)
+        file_urls=$(echo "$api_response" | jq -r '.[] | select(.type == "file") | .download_url' 2>/dev/null || true)
+        file_sizes=$(echo "$api_response" | jq -r '.[] | select(.type == "file") | .size' 2>/dev/null || true)
 
         if [[ -z "$file_names" ]]; then
             if [[ $attempt -lt $max_retries ]]; then
@@ -1041,14 +1041,14 @@ verify_fix() {
     local orig_path="$ORIGINAL_BACKUP_ROOT/$sname/voice_module"
 
     local node_file
-    node_file=$(find "$voice_path" -name "*.node" -type f 2>/dev/null | head -1)
+    node_file=$(find "$voice_path" -name "*.node" -type f 2>/dev/null | head -1 || true)
     if [[ -z "$node_file" ]]; then
         echo "ERROR|No .node file found in voice module"
         return
     fi
 
     local current_hash current_size
-    current_hash=$(md5sum "$node_file" 2>/dev/null | cut -d' ' -f1)
+    current_hash=$(md5sum "$node_file" 2>/dev/null | cut -d' ' -f1 || true)
     current_size=$(stat -c%s "$node_file" 2>/dev/null || echo "0")
 
     # Check for zero-size corruption
@@ -1064,10 +1064,10 @@ verify_fix() {
 
     if [[ -d "$orig_path" ]]; then
         local orig_node
-        orig_node=$(find "$orig_path" -name "*.node" -type f 2>/dev/null | head -1)
+        orig_node=$(find "$orig_path" -name "*.node" -type f 2>/dev/null | head -1 || true)
         if [[ -n "$orig_node" ]]; then
             local orig_hash
-            orig_hash=$(md5sum "$orig_node" 2>/dev/null | cut -d' ' -f1)
+            orig_hash=$(md5sum "$orig_node" 2>/dev/null | cut -d' ' -f1 || true)
             if [[ "$current_hash" == "$orig_hash" ]]; then
                 echo "NOTFIXED|Original mono modules detected|$current_hash|$current_size"
                 return
@@ -1162,7 +1162,7 @@ fix_client() {
 
     # Verify node file exists and is non-empty
     local new_node
-    new_node=$(find "$voice_path" -name "*.node" -type f 2>/dev/null | head -1)
+    new_node=$(find "$voice_path" -name "*.node" -type f 2>/dev/null | head -1 || true)
     if [[ -z "$new_node" ]]; then
         status "  [X] No .node file found after copy — something went wrong" red
         return 1
@@ -1170,7 +1170,7 @@ fix_client() {
 
     local new_size new_hash
     new_size=$(stat -c%s "$new_node" 2>/dev/null || echo "0")
-    new_hash=$(md5sum "$new_node" 2>/dev/null | cut -d' ' -f1)
+    new_hash=$(md5sum "$new_node" 2>/dev/null | cut -d' ' -f1 || true)
 
     if [[ "$new_size" -lt 1024 ]]; then
         status "  [X] Copied .node file is suspiciously small (${new_size} bytes)" red
@@ -1217,7 +1217,7 @@ run_diagnostics() {
     for dep in curl jq md5sum; do
         if command -v "$dep" &>/dev/null; then
             local ver
-            ver=$("$dep" --version 2>/dev/null | head -1 | head -c 60)
+            ver=$("$dep" --version 2>/dev/null | head -1 | head -c 60 || echo "version unavailable")
             echo -e "  ${GREEN}✓${NC} $dep — $ver"
         else
             echo -e "  ${RED}✗${NC} $dep — NOT FOUND"
@@ -1250,11 +1250,11 @@ run_diagnostics() {
             echo -e "    Voice path:  ${CLIENT_VOICE_PATHS[$i]}"
 
             local node_file
-            node_file=$(find "${CLIENT_VOICE_PATHS[$i]}" -name "*.node" -type f 2>/dev/null | head -1)
+            node_file=$(find "${CLIENT_VOICE_PATHS[$i]}" -name "*.node" -type f 2>/dev/null | head -1 || true)
             if [[ -n "$node_file" ]]; then
                 local fsize fhash
                 fsize=$(stat -c%s "$node_file" 2>/dev/null || echo "0")
-                fhash=$(md5sum "$node_file" 2>/dev/null | cut -d' ' -f1)
+                fhash=$(md5sum "$node_file" 2>/dev/null | cut -d' ' -f1 || true)
                 local size_fmt
                 if [[ $fsize -gt 1048576 ]]; then
                     size_fmt="$(echo "scale=1; $fsize / 1048576" | bc 2>/dev/null || echo "$(( fsize / 1048576 ))") MB"
@@ -1328,7 +1328,7 @@ run_diagnostics() {
     fi
 
     local backup_size
-    backup_size=$(du -sh "$APP_DATA_ROOT" 2>/dev/null | cut -f1)
+    backup_size=$(du -sh "$APP_DATA_ROOT" 2>/dev/null | cut -f1 || echo "0")
     echo -e "  Total size: ${backup_size:-0}"
 
     # Log file
@@ -1336,7 +1336,7 @@ run_diagnostics() {
     echo -e "${CYAN}Log:${NC}"
     if [[ -f "$LOG_FILE" ]]; then
         local log_size
-        log_size=$(du -h "$LOG_FILE" 2>/dev/null | cut -f1)
+        log_size=$(du -h "$LOG_FILE" 2>/dev/null | cut -f1 || echo "0")
         echo -e "  File: $LOG_FILE ($log_size)"
         echo -e "  Last 3 entries:"
         tail -3 "$LOG_FILE" 2>/dev/null | while read -r line; do
@@ -1363,7 +1363,7 @@ run_silent() {
             local base="${SEARCH_PATHS[$i]}"
             [[ -d "$base" ]] || continue
             local app_dirs
-            app_dirs=$(find "$base" -maxdepth 1 -type d -name "app-*" 2>/dev/null | head -1)
+            app_dirs=$(find "$base" -maxdepth 1 -type d -name "app-*" 2>/dev/null | head -1 || true)
             if [[ -n "$app_dirs" ]]; then
                 if [[ -d "$app_dirs/modules" ]]; then
                     no_voice+=("${SEARCH_NAMES[$i]}")
@@ -1598,7 +1598,7 @@ run_interactive() {
             if [[ -d "$base" ]]; then
                 found_any=true
                 local app_dirs
-                app_dirs=$(find "$base" -maxdepth 1 -type d -name "app-*" 2>/dev/null | head -1)
+                app_dirs=$(find "$base" -maxdepth 1 -type d -name "app-*" 2>/dev/null | head -1 || true)
                 if [[ -n "$app_dirs" ]]; then
                     if [[ -d "$app_dirs/modules" ]]; then
                         echo -e "  ${YELLOW}●${NC} ${SEARCH_NAMES[$i]} — ${YELLOW}modules folder exists but no voice module${NC}"

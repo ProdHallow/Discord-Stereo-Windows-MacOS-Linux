@@ -182,7 +182,7 @@ find_discord_clients() {
 
         # Find discord_voice.node inside app-*/modules/discord_voice*/discord_voice/
         local found_nodes
-        found_nodes=$(find "$base" -maxdepth 5 -name "discord_voice.node" -type f 2>/dev/null | head -5)
+        found_nodes=$(find "$base" -maxdepth 5 -name "discord_voice.node" -type f 2>/dev/null | head -5 || true)
 
         if [[ -z "$found_nodes" ]]; then continue; fi
 
@@ -240,9 +240,15 @@ verify_binary() {
     # MD5 check
     local actual_md5
     if command -v md5sum &>/dev/null; then
-        actual_md5=$(md5sum "$node_path" | cut -d' ' -f1)
+        if ! actual_md5=$(md5sum "$node_path" 2>/dev/null | cut -d' ' -f1); then
+            log_error "Failed to compute md5 for $name"
+            return 1
+        fi
     elif command -v md5 &>/dev/null; then
-        actual_md5=$(md5 -q "$node_path")
+        if ! actual_md5=$(md5 -q "$node_path" 2>/dev/null); then
+            log_error "Failed to compute md5 for $name"
+            return 1
+        fi
     else
         log_warn "No md5sum or md5 found, skipping hash verification"
         return 0
@@ -296,7 +302,7 @@ backup_node() {
 
     # Prune old backups per client (keep 3 — ~225MB for a 75MB node)
     local count
-    count=$(ls -1 "$BACKUP_DIR"/discord_voice.node."${sanitized}".*.backup 2>/dev/null | wc -l)
+    count=$(ls -1 "$BACKUP_DIR"/discord_voice.node."${sanitized}".*.backup 2>/dev/null | wc -l || true)
     if (( count > 3 )); then
         ls -1t "$BACKUP_DIR"/discord_voice.node."${sanitized}".*.backup | tail -n +4 | xargs rm -f
     fi
@@ -323,7 +329,7 @@ restore_from_backup() {
         local bsize
         bsize=$(stat -c%s "$bk" 2>/dev/null || echo "?")
         local bdate
-        bdate=$(stat -c%y "$bk" 2>/dev/null | cut -d. -f1)
+        bdate=$(stat -c%y "$bk" 2>/dev/null | cut -d. -f1 || echo "unknown")
         echo -e "  [$(( i + 1 ))] ${bdate} - $(numfmt --to=iec "$bsize" 2>/dev/null || echo "$bsize") - $(basename "$bk")"
     done
     echo ""
@@ -367,12 +373,12 @@ find_compiler() {
     if command -v g++ &>/dev/null; then
         COMPILER="g++"
         COMPILER_TYPE="GCC"
-        log_ok "Found g++ ($(g++ --version | head -1))"
+        log_ok "Found g++ ($(g++ --version 2>/dev/null | head -1 || echo 'g++ (version unknown)'))"
         return 0
     elif command -v clang++ &>/dev/null; then
         COMPILER="clang++"
         COMPILER_TYPE="Clang"
-        log_ok "Found clang++ ($(clang++ --version | head -1))"
+        log_ok "Found clang++ ($(clang++ --version 2>/dev/null | head -1 || echo 'clang++ (version unknown)'))"
         return 0
     fi
     log_error "No C++ compiler found!"

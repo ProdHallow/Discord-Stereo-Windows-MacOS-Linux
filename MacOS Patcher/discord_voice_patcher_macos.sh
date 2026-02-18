@@ -58,11 +58,11 @@ log_error()   { echo -e "${RED}[XX]${NC} $1"; echo "[ERROR] $1" >> "$LOG_FILE" 2
 format_size() {
     local bytes="$1"
     if (( bytes > 1073741824 )); then
-        printf "%.2f GB" "$(echo "scale=2; $bytes / 1073741824" | bc)"
+        printf "%.2f GB" "$(echo "scale=2; $bytes / 1073741824" | bc 2>/dev/null || echo "$(( bytes / 1073741824 ))")"
     elif (( bytes > 1048576 )); then
-        printf "%.2f MB" "$(echo "scale=2; $bytes / 1048576" | bc)"
+        printf "%.2f MB" "$(echo "scale=2; $bytes / 1048576" | bc 2>/dev/null || echo "$(( bytes / 1048576 ))")"
     elif (( bytes > 1024 )); then
-        printf "%.1f KB" "$(echo "scale=1; $bytes / 1024" | bc)"
+        printf "%.1f KB" "$(echo "scale=1; $bytes / 1024" | bc 2>/dev/null || echo "$(( bytes / 1024 ))")"
     else
         echo "${bytes} bytes"
     fi
@@ -171,7 +171,7 @@ find_discord_clients() {
 
         # Find discord_voice.node files
         local found_nodes
-        found_nodes=$(find "$base" -maxdepth 6 -name "discord_voice.node" -type f 2>/dev/null | head -5)
+        found_nodes=$(find "$base" -maxdepth 6 -name "discord_voice.node" -type f 2>/dev/null | head -5 || true)
 
         if [[ -n "$found_nodes" ]]; then
             # Pick the most recent one
@@ -250,7 +250,7 @@ backup_node() {
 
     # Prune old backups (keep 10)
     local count
-    count=$(ls -1 "$BACKUP_DIR"/*.backup 2>/dev/null | wc -l | tr -d ' ')
+    count=$(ls -1 "$BACKUP_DIR"/*.backup 2>/dev/null | wc -l | tr -d ' ' || true)
     if (( count > 10 )); then
         ls -1t "$BACKUP_DIR"/*.backup | tail -n +11 | xargs rm -f
     fi
@@ -324,7 +324,7 @@ find_compiler() {
     if command -v clang++ &>/dev/null; then
         COMPILER="clang++"
         COMPILER_TYPE="Clang"
-        log_ok "Found clang++ ($(clang++ --version 2>&1 | head -1))"
+        log_ok "Found clang++ ($(clang++ --version 2>/dev/null | head -1 || echo 'clang++ (version unknown)'))"
         return 0
     elif command -v c++ &>/dev/null; then
         COMPILER="c++"
@@ -334,7 +334,7 @@ find_compiler() {
     elif command -v g++ &>/dev/null; then
         COMPILER="g++"
         COMPILER_TYPE="GCC"
-        log_ok "Found g++ ($(g++ --version | head -1))"
+        log_ok "Found g++ ($(g++ --version 2>/dev/null | head -1 || echo 'g++ (version unknown)'))"
         return 0
     fi
 
@@ -588,7 +588,7 @@ compile_patcher() {
 
     # macOS: compile for x86_64 specifically (Discord uses x86_64 under Rosetta on ARM)
     local arch_flags=""
-    if [[ "$(uname -m)" == "arm64" ]]; then
+    if [[ "$(uname -m 2>/dev/null || echo unknown)" == "arm64" ]]; then
         # On Apple Silicon, Discord runs x86_64 via Rosetta
         # The patcher itself can be native ARM, but the injected code
         # (hp_cutoff, dc_reject) must be compiled for x86_64
