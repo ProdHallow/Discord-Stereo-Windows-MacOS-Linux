@@ -194,7 +194,6 @@ You can also let Discord update; it will replace the voice module with a fresh c
 ## 🔗 Links
 
 - **[Main repo](https://github.com/ProdHallow/Discord-Stereo-Windows-MacOS-Linux)** — Offset finder, Windows/macOS/Linux assets
-- **[Discord-Node-Patcher](https://github.com/ProdHallow/Discord-Node-Patcher-Feb-9-2026)** — Windows GUI patcher
 - **[Voice Playground](https://discord-voice.xyz/)**
 
 ---
