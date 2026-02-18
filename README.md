@@ -33,7 +33,7 @@ We analyze and improve stereo voice handling across Windows, macOS, and Linux �
 | Area | Focus |
 |------|-------|
 | **True Stereo Preservation** | Bypassing mono downmix, forcing 2-channel output |
-| **Bitrate Unlocking** | Removing encoder caps, pushing to 512kbps Opus max |
+| **Bitrate Unlocking** | Removing encoder caps, pushing to 400kbps Opus max |
 | **Sample Rate Restoration** | Bypassing 24kHz limits → native 48kHz |
 | **Filter Bypassing** | Disabling high-pass filters, DC rejection, gain processing |
 | **Signal Integrity** | Clean passthrough without Discord's audio "enhancements" |
@@ -55,7 +55,7 @@ We analyze and improve stereo voice handling across Windows, macOS, and Linux �
 | Before | After |
 |:------:|:-----:|
 | 24 kHz | **48 kHz** |
-| ~64 kbps | **512 kbps** |
+| ~64 kbps | **400 kbps** |
 | Mono downmix | **True Stereo** |
 | Aggressive filtering | **Filterless passthrough** |
 
@@ -263,7 +263,7 @@ Use the Installer for simplicity, the Patcher for flexibility.
 
 ### v3.0 — Full Stereo Pipeline (Jan 2026)
 - Complete stereo enforcement: `CreateAudioFrameStereo`, `SetChannels`, `MonoDownmixer`
-- Bitrate unlock to 512kbps across all encoder paths
+- Bitrate unlock to 400kbps across all encoder paths
 - 48kHz sample rate restoration
 - High-pass filter bypass with function body injection
 - `ConfigIsOk` override and `ThrowError` suppression
@@ -314,8 +314,8 @@ Each patch modifies a specific behavior in the voice encoding pipeline:
 | 3 | `MonoDownmixer` | Mixes stereo→mono before encoding — NOP sled + unconditional jump bypasses the entire function | 12× `NOP` + `JMP` |
 | 4 | `EmulateStereoSuccess1` | Stereo capability check return value — force to `2` (stereo) | `0x02` |
 | 5 | `EmulateStereoSuccess2` | Conditional branch after stereo check — patch to unconditional jump | `JMP` (`0xEB`) — Win: was `JNE`, Linux/macOS: was `JE` |
-| 6 | `EmulateBitrateModified` | Bitrate calculation result — overwrite with 512000 (`0x07D000`) | `0x00 0xD0 0x07` |
-| 7 | `SetsBitrateBitrateValue` | Bitrate storage — write 512000 as 32-bit LE value | `0x00 0xD0 0x07 0x00 0x00` |
+| 6 | `EmulateBitrateModified` | Bitrate calculation result — overwrite with 400000 (`0x061A80`) | `0x80 0x1A 0x06` |
+| 7 | `SetsBitrateBitrateValue` | Bitrate storage — write 400000 as 32-bit LE value | `0x80 0x1A 0x06 0x00 0x00` |
 | 8 | `SetsBitrateBitwiseOr` | Bitwise OR that caps bitrate — NOP to prevent clamping | 3× `NOP` |
 | 9 | `Emulate48Khz` | `cmovb` that clamps sample rate to 24kHz — NOP to allow 48kHz passthrough | 3× `NOP` |
 | 10 | `HighPassFilter` | Entry point of HP filter function — replace with ret (Linux/macOS) or `mov rax, <addr>; ret` stub (Windows) | `RET` / 11-byte stub |
@@ -324,9 +324,9 @@ Each patch modifies a specific behavior in the voice encoding pipeline:
 | 13 | `DownmixFunc` | Downmix processing function — immediate `RET` to skip entirely | `0xC3` |
 | 14 | `AudioEncoderOpusConfigIsOk` | Config validation — return `1` unconditionally | `mov rax,1; ret` (Win) / `ret` (Linux/macOS) |
 | 15 | `ThrowError` | Error throwing function — immediate `RET` suppresses encoder errors | `0xC3` |
-| 16 | `DuplicateEmulateBitrateModified` | Parallel bitrate calculation path — same 512kbps patch as #6 | `0x00 0xD0 0x07` |
-| 17 | `EncoderConfigInit1` | First Opus config constructor — init bitrate to 512kbps instead of 32kbps | `0x00 0xD0 0x07 0x00` |
-| 18 | `EncoderConfigInit2` | Second Opus config constructor — same init patch | `0x00 0xD0 0x07 0x00` |
+| 16 | `DuplicateEmulateBitrateModified` | Parallel bitrate calculation path — same 400kbps patch as #6 | `0x80 0x1A 0x06` |
+| 17 | `EncoderConfigInit1` | First Opus config constructor — init bitrate to 400kbps instead of 32kbps | `0x80 0x1A 0x06 0x00` |
+| 18 | `EncoderConfigInit2` | Second Opus config constructor — same init patch | `0x80 0x1A 0x06 0x00` |
 
 ### Platform Differences
 

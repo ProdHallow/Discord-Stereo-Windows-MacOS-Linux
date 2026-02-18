@@ -5,7 +5,7 @@
 ![macOS](https://img.shields.io/badge/MacOS-Active-00C853?style=flat-square)
 ![Focus](https://img.shields.io/badge/Focus-True%20Stereo%20Voice-5865F2?style=flat-square)
 
-Part of the [Discord Audio Collective](https://github.com/ProdHallow/Discord-Stereo-Windows-MacOS-Linux) — unlocking **48kHz**, **512kbps**, and **true stereo** on macOS (Intel and Apple Silicon via Rosetta).
+Part of the [Discord Audio Collective](https://github.com/ProdHallow/Discord-Stereo-Windows-MacOS-Linux) — unlocking **48kHz**, **384kbps**, and **true stereo** on macOS (Intel and Apple Silicon via Rosetta).
 
 ---
 
@@ -22,7 +22,7 @@ Part of the [Discord Audio Collective](https://github.com/ProdHallow/Discord-Ste
 | Before | After |
 |:------:|:-----:|
 | 24 kHz | **48 kHz** |
-| ~64 kbps | **512 kbps** |
+| ~64 kbps | **384 kbps** |
 | Mono downmix | **True Stereo** |
 | Aggressive filtering | **Filterless passthrough** |
 
