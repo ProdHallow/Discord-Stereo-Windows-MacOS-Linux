@@ -821,9 +821,14 @@ main() {
     # Find compiler
     find_compiler || exit 1
 
-    # Select clients
-    select_clients
-    local selection=$?
+    # Select clients. Capture non-zero returns (e.g. 255 = patch all)
+    # without tripping set -e.
+    local selection
+    if select_clients; then
+        selection=$?
+    else
+        selection=$?
+    fi
 
     # Check if Discord is running and warn — no kill needed on Linux,
     # files aren't locked like on Windows.

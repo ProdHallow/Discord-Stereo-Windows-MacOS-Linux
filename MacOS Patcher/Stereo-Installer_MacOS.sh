@@ -64,6 +64,16 @@ for arg in "$@"; do
     esac
 done
 
+# Explicit placeholder guard until macOS installer assets/repo are published.
+if [[ "$VOICE_BACKUP_API" == *"PLACEHOLDER"* || "$SETTINGS_JSON_URL" == *"PLACEHOLDER"* || "$UPDATE_URL" == *"PLACEHOLDER"* ]]; then
+    echo "Discord Voice Fixer — macOS Installer is currently a placeholder."
+    echo "Installer download endpoints are not configured yet."
+    echo ""
+    echo "Use the macOS patcher for now:"
+    echo "  ./discord_voice_patcher_macos.sh"
+    exit 1
+fi
+
 # ─── macOS Utility Wrappers ──────────────────────────────────────────────────
 get_file_size() { stat -f%z "$1" 2>/dev/null || echo "0"; }
 get_file_mtime() { stat -f%m "$1" 2>/dev/null || echo "0"; }

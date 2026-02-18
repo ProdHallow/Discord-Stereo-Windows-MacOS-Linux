@@ -7,7 +7,7 @@
 set -euo pipefail
 
 SCRIPT_VERSION="6.0"
-AUDIO_GAIN="${1:-1}"
+AUDIO_GAIN=1
 SKIP_BACKUP=false
 RESTORE_MODE=false
 
@@ -116,8 +116,14 @@ for arg in "$@"; do
     esac
 done
 
-if (( AUDIO_GAIN < 1 || AUDIO_GAIN > 10 )); then
-    echo "Error: gain must be 1-10"; exit 1
+# Force base-10 interpretation (avoids octal issues with leading zeros like 08/09)
+AUDIO_GAIN=$((10#$AUDIO_GAIN))
+
+# Skip gain validation for modes that don't need it
+if ! $RESTORE_MODE; then
+    if (( AUDIO_GAIN < 1 || AUDIO_GAIN > 10 )); then
+        echo "Error: gain must be 1-10"; exit 1
+    fi
 fi
 
 # ─── Initialize ───────────────────────────────────────────────────────────────
@@ -375,6 +381,7 @@ generate_patcher_source() {
 #include <cstdint>
 #include <cstring>
 #include <string>
+#include <cstdlib>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -570,7 +577,8 @@ PATCHEOF
 
 # ─── Compilation ──────────────────────────────────────────────────────────────
 compile_patcher() {
-    log_info "Compiling patcher with $COMPILER_TYPE..."
+    # Keep stdout clean so command substitution only captures the exe path
+    log_info "Compiling patcher with $COMPILER_TYPE..." >&2
 
     local exe="$TEMP_DIR/DiscordVoicePatcher"
     rm -f "$exe"
@@ -589,14 +597,14 @@ compile_patcher() {
         "$TEMP_DIR/patcher.cpp" \
         "$TEMP_DIR/amplifier.cpp" \
         -o "$exe" 2>"$TEMP_DIR/build.log"; then
-        log_error "Compilation failed!"
-        echo ""
-        cat "$TEMP_DIR/build.log"
+        log_error "Compilation failed!" >&2
+        echo "" >&2
+        cat "$TEMP_DIR/build.log" >&2
         return 1
     fi
 
     chmod +x "$exe"
-    log_ok "Compilation successful"
+    log_ok "Compilation successful" >&2
     echo "$exe"
     return 0
 }
@@ -704,9 +712,14 @@ main() {
     # Find compiler
     find_compiler || exit 1
 
-    # Select clients
-    select_clients
-    local selection=$?
+    # Select clients. Capture non-zero returns (e.g. 255 = patch all)
+    # without tripping set -e.
+    local selection
+    if select_clients; then
+        selection=$?
+    else
+        selection=$?
+    fi
 
     # Close Discord
     kill_discord
