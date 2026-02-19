@@ -30,8 +30,9 @@ LOG_FILE="$CACHE_DIR/patcher.log"
 TEMP_DIR="$CACHE_DIR/build"
 
 # --- Build fingerprint (update when targeting a new Discord build) ------------
-# Run: python discord_voice_node_offset_finder_v5.py <path/to/discord_voice.node>
-# Copy the "COPY BELOW" block output into this section.
+# Replace this section with offset finder output:
+#   Run: python discord_voice_node_offset_finder_v5.py <path/to/discord_voice.node>
+#   Copy the block "COPY BELOW -> discord_voice_patcher_linux.sh" into this section.
 EXPECTED_MD5="55fa8e3fcf665ffa223e1dcde3cba3b0"
 EXPECTED_SIZE=88674536
 
