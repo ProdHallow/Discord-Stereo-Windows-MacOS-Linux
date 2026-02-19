@@ -10,8 +10,8 @@ set -euo pipefail
 SCRIPT_VERSION="2.0"
 
 # --- Configuration -----------------------------------------------------------
-VOICE_BACKUP_API="https://api.github.com/repos/ProdHallow/Discord-Stereo-Windows-MacOS-Linux/contents/Linux%20Beta%20Patcher/discord_voice"
-UPDATE_URL="https://raw.githubusercontent.com/ProdHallow/Discord-Stereo-Windows-MacOS-Linux/main/Linux%20Beta%20Patcher/Stereo-Installer-Linux.sh"
+VOICE_BACKUP_API="https://api.github.com/repos/ProdHallow/Discord-Stereo-Windows-MacOS-Linux/contents/Linux%20Patcher%20and%20Installer/discord_voice"
+UPDATE_URL="https://raw.githubusercontent.com/ProdHallow/Discord-Stereo-Windows-MacOS-Linux/main/Linux%20Patcher%20and%20Installer/Stereo-Installer-Linux.sh"
 
 APP_DATA_ROOT="$HOME/.cache/DiscordVoiceFixer"
 BACKUP_ROOT="$APP_DATA_ROOT/backups"

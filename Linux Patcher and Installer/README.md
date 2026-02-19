@@ -99,7 +99,7 @@ chmod +x Stereo-Installer-Linux.sh
 | `Stereo-Installer-Linux.sh` | Download pre-patched modules and install |
 | `README.md` | This file |
 
-Pre-patched files for the installer are served from the main repo’s `Linux Beta Patcher/discord_voice/` directory.
+Pre-patched files for the installer are served from the main repo’s `Linux Patcher and Installer/discord_voice/` directory.
 
 ---
 
