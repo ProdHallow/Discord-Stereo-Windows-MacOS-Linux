@@ -65,10 +65,9 @@ We analyze and improve stereo voice handling across Windows, macOS, and Linux �
 
 | Repository | Description | Status |
 |------------|-------------|:------:|
-| **[Discord-Node-Patcher](https://github.com/ProdHallow/Discord-Node-Patcher-Feb-9-2026)** | Windows voice module patcher | ✅ Active |
-| **[Discord-Stereo-Installer](https://github.com/ProdHallow/Discord-Stereo-Installer)** | Pre-patched binaries & installer | ✅ Active |
-| **[macOS Beta Patcher](https://github.com/ProdHallow/Discord-Stereo-Windows-MacOS-Linux/tree/main/MacOS%20BETA%20PATCHER)** | macOS voice module patcher | ✅ Active |
-| **[Linux Beta Patcher](https://github.com/ProdHallow/Discord-Stereo-Windows-MacOS-Linux/tree/main/Linux%20Patcher%20and%20Installer)** | Linux voice module patcher | ✅ Active |
+| **[Windows Patcher and Installer](./Windows%20Patcher%20and%20Installer/)** | Windows voice module patcher and installer | ✅ Active |
+| **[macOS Patcher](./MacOS%20Patcher/)** | macOS voice module patcher | ✅ Active |
+| **[Linux Patcher and Installer](./Linux%20Patcher%20and%20Installer/)** | Linux voice module patcher and installer | ✅ Active |
 
 ---
 
@@ -232,8 +231,8 @@ find ~/.var/app/com.discordapp.Discord -name "discord_voice.node"
 <details>
 <summary><b>What's the difference between the Installer and the Patcher?</b></summary>
 
-- **[Discord-Stereo-Installer](https://github.com/ProdHallow/Discord-Stereo-Installer)** provides **pre-patched** `discord_voice.node` binaries. Download and drop in — no compiler needed. Windows only.
-- **[Discord-Node-Patcher](https://github.com/ProdHallow/Discord-Node-Patcher-Feb-9-2026)** compiles and applies patches at runtime. Supports custom gain, multi-client detection, and works even if the pre-patched binary isn't available yet for your build.
+- **[Windows Patcher and Installer folder](./Windows%20Patcher%20and%20Installer/)** includes the installer flow (`Stereo-Installer-Windows.bat`) for quick setup with no compiler.
+- **[Windows Patcher and Installer folder](./Windows%20Patcher%20and%20Installer/)** also includes the runtime patcher flow (`Stereo-Node-Patcher-Windows.BAT`) for custom gain and latest-build flexibility.
 
 Use the Installer for simplicity, the Patcher for flexibility.
 </details>
@@ -397,6 +396,6 @@ Found new offsets? Have test results? Want to help reverse engineer macOS/Linux 
 
 <div align="center">
 
-**[Report Issue](https://github.com/ProdHallow/Discord-Node-Patcher-Feb-9-2026/issues)** • **[Join the Development Discord](https://discord.gg/gDY6F8RAfM)**
+**[Report Issue](https://github.com/ProdHallow/Discord-Stereo-Windows-MacOS-Linux/issues)** • **[Join the Development Discord](https://discord.gg/gDY6F8RAfM)**
 
 </div>
