@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ###############################################################################
-# DISCORD VOICE FIXER — Stereo Audio Module Installer (macOS)
+# DISCORD VOICE FIXER - Stereo Audio Module Installer (macOS)
 # Downloads and installs pre-patched stereo voice modules
 # Usage: ./DiscordVoiceFixer_macos.sh [--silent] [--check] [--restore] [--help]
 # Made by: Oracle | Shaun | Hallow | Ascend | Sentry | Sikimzo | Cypher
@@ -9,7 +9,7 @@ set -euo pipefail
 
 SCRIPT_VERSION="1.0"
 
-# ─── Configuration ────────────────────────────────────────────────────────────
+# --- Configuration -----------------------------------------------------------
 # PLACEHOLDER: Update these URLs when repos are created
 VOICE_BACKUP_API="https://api.github.com/repos/ProdHallow/PLACEHOLDER-macos-voice-backup/contents/Discord%20Voice%20Backup"
 SETTINGS_JSON_URL="https://raw.githubusercontent.com/ProdHallow/PLACEHOLDER-macos-voice-backup/main/settings.json"
@@ -25,12 +25,12 @@ STATE_FILE="$APP_DATA_ROOT/state.json"
 LOG_FILE="$APP_DATA_ROOT/debug.log"
 MAX_BACKUPS_PER_CLIENT=1
 
-# ─── Colors ───────────────────────────────────────────────────────────────────
+# --- Colors ------------------------------------------------------------------
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; CYAN='\033[0;36m'
 MAGENTA='\033[0;35m'; WHITE='\033[1;37m'; DIM='\033[0;90m'; BLUE='\033[0;34m'
 BOLD='\033[1m'; NC='\033[0m'; ORANGE='\033[0;33m'
 
-# ─── CLI Flags ────────────────────────────────────────────────────────────────
+# --- CLI Flags ---------------------------------------------------------------
 SILENT_MODE=false
 CHECK_ONLY=false
 RESTORE_MODE=false
@@ -43,7 +43,7 @@ for arg in "$@"; do
         --restore|-r)  RESTORE_MODE=true ;;
         --fix=*)       FIX_CLIENT="${arg#--fix=}" ;;
         --help|-h)
-            echo "Discord Voice Fixer — macOS Installer v${SCRIPT_VERSION}"
+            echo "Discord Voice Fixer - macOS Installer v${SCRIPT_VERSION}"
             echo ""
             echo "Usage: $0 [options]"
             echo ""
@@ -66,7 +66,7 @@ done
 
 # Explicit placeholder guard until macOS installer assets/repo are published.
 if [[ "$VOICE_BACKUP_API" == *"PLACEHOLDER"* || "$SETTINGS_JSON_URL" == *"PLACEHOLDER"* || "$UPDATE_URL" == *"PLACEHOLDER"* ]]; then
-    echo "Discord Voice Fixer — macOS Installer is currently a placeholder."
+    echo "Discord Voice Fixer - macOS Installer is currently a placeholder."
     echo "Installer download endpoints are not configured yet."
     echo ""
     echo "Use the macOS patcher for now:"
@@ -74,7 +74,7 @@ if [[ "$VOICE_BACKUP_API" == *"PLACEHOLDER"* || "$SETTINGS_JSON_URL" == *"PLACEH
     exit 1
 fi
 
-# ─── macOS Utility Wrappers ──────────────────────────────────────────────────
+# --- macOS Utility Wrappers --------------------------------------------------
 get_file_size() { stat -f%z "$1" 2>/dev/null || echo "0"; }
 get_file_mtime() { stat -f%m "$1" 2>/dev/null || echo "0"; }
 
@@ -105,7 +105,7 @@ format_date() {
     echo "$datestr"
 }
 
-# ─── Logging ──────────────────────────────────────────────────────────────────
+# --- Logging -----------------------------------------------------------------
 ensure_dir() { [[ -d "$1" ]] || mkdir -p "$1" 2>/dev/null || true; }
 
 log_file() {
@@ -133,16 +133,15 @@ status() {
 
 banner() {
     echo ""
-    echo -e "${CYAN}╔══════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║${NC}  ${WHITE}${BOLD}Discord Voice Fixer${NC} — ${CYAN}macOS Installer v${SCRIPT_VERSION}${NC}     ${CYAN}║${NC}"
-    echo -e "${CYAN}║${NC}  ${DIM}48kHz | 512kbps | True Stereo | Filterless${NC}      ${CYAN}║${NC}"
-    echo -e "${CYAN}║${NC}  ${DIM}Oracle | Shaun | Hallow | Ascend | Sentry${NC}       ${CYAN}║${NC}"
-    echo -e "${CYAN}║${NC}  ${DIM}Sikimzo | Cypher${NC}                                ${CYAN}║${NC}"
-    echo -e "${CYAN}╚══════════════════════════════════════════════════╝${NC}"
+    echo -e "${CYAN}==================================================${NC}"
+    echo -e "${WHITE}${BOLD}Discord Voice Fixer${NC} - ${CYAN}macOS Installer v${SCRIPT_VERSION}${NC}"
+    echo -e "${DIM}48kHz | 512kbps | True Stereo | Filterless${NC}"
+    echo -e "${DIM}Oracle | Shaun | Hallow | Ascend | Sentry | Sikimzo | Cypher${NC}"
+    echo -e "${CYAN}==================================================${NC}"
     echo ""
 }
 
-# ─── Dependency Check ─────────────────────────────────────────────────────────
+# --- Dependency Check --------------------------------------------------------
 check_dependencies() {
     local missing=()
     command -v curl &>/dev/null || missing+=("curl")
@@ -162,7 +161,7 @@ check_dependencies() {
     fi
 }
 
-# ─── Discord Client Detection ────────────────────────────────────────────────
+# --- Discord Client Detection ------------------------------------------------
 declare -a CLIENT_NAMES=()
 declare -a CLIENT_PATHS=()
 declare -a CLIENT_APP_PATHS=()
@@ -293,7 +292,7 @@ find_discord_clients() {
     return 0
 }
 
-# ─── Process Management ──────────────────────────────────────────────────────
+# --- Process Management ------------------------------------------------------
 kill_discord() {
     # Graceful quit via osascript first
     local apps=("Discord" "Discord Canary" "Discord PTB")
@@ -311,7 +310,7 @@ is_discord_running() {
     pgrep -f "Discord" &>/dev/null
 }
 
-# ─── State Management ────────────────────────────────────────────────────────
+# --- State Management --------------------------------------------------------
 ensure_app_dirs() {
     ensure_dir "$APP_DATA_ROOT"
     ensure_dir "$BACKUP_ROOT"
@@ -373,7 +372,7 @@ check_discord_updated() {
     echo "OK|$current_version|$last_date"
 }
 
-# ─── Backup Management ───────────────────────────────────────────────────────
+# --- Backup Management -------------------------------------------------------
 backup_has_content() {
     local backup_path="$1"
     local voice_dir="$backup_path/voice_module"
@@ -599,7 +598,7 @@ restore_from_backup() {
     return 0
 }
 
-# ─── macOS Code Signing & Quarantine ─────────────────────────────────────────
+# --- macOS Code Signing & Quarantine -----------------------------------------
 handle_code_signing() {
     local voice_path="$1"
     local node_file
@@ -624,7 +623,7 @@ handle_code_signing() {
     done
 }
 
-# ─── Download Voice Backup Files ─────────────────────────────────────────────
+# --- Download Voice Backup Files ---------------------------------------------
 download_voice_files() {
     local dest_path="$1"
     local max_retries=3
@@ -646,7 +645,7 @@ download_voice_files() {
                 return 1
             fi
             if [[ $attempt -lt $max_retries ]]; then
-                status "  [!] Attempt $attempt failed — retrying..." orange
+                status "  [!] Attempt $attempt failed - retrying..." orange
                 continue
             fi
             status "  [X] Failed to fetch file list after $max_retries attempts" red
@@ -716,7 +715,7 @@ download_voice_files() {
     return 1
 }
 
-# ─── Verify Fix Status ───────────────────────────────────────────────────────
+# --- Verify Fix Status -------------------------------------------------------
 verify_fix() {
     local voice_path="$1" client_name="$2"
     local sname
@@ -749,10 +748,10 @@ verify_fix() {
         fi
     fi
 
-    echo "UNKNOWN|No original backup to compare — run fix first|$current_hash"
+    echo "UNKNOWN|No original backup to compare - run fix first|$current_hash"
 }
 
-# ─── Fix a Single Client ─────────────────────────────────────────────────────
+# --- Fix a Single Client -----------------------------------------------------
 fix_client() {
     local idx="$1" download_path="$2"
     local name="${CLIENT_NAMES[$idx]}"
@@ -805,9 +804,9 @@ fix_client() {
     return 0
 }
 
-# ═══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
 #  SILENT MODE
-# ═══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
 run_silent() {
     log_file "INFO" "Starting in silent mode"
     find_discord_clients
@@ -825,7 +824,7 @@ run_silent() {
             result=$(check_discord_updated "${CLIENT_NAMES[$i]}" "${CLIENT_VERSIONS[$i]}")
             local rtype="${result%%|*}"
             case "$rtype" in
-                NEW)     echo "[NEW] ${CLIENT_NAMES[$i]}: v${CLIENT_VERSIONS[$i]} — Never fixed"; needs_fix=true ;;
+                NEW)     echo "[NEW] ${CLIENT_NAMES[$i]}: v${CLIENT_VERSIONS[$i]} - Never fixed"; needs_fix=true ;;
                 UPDATED) echo "[UPDATE] ${CLIENT_NAMES[$i]}: ${result#UPDATED|}"; needs_fix=true ;;
                 OK)      echo "[OK] ${CLIENT_NAMES[$i]}: ${result#OK|}" ;;
             esac
@@ -879,9 +878,9 @@ run_silent() {
     exit 0
 }
 
-# ═══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
 #  RESTORE MODE
-# ═══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
 run_restore() {
     banner
     ensure_app_dirs
@@ -913,10 +912,10 @@ run_restore() {
         backup_paths+=("$bpath")
         if [[ "$btype" == "ORIGINAL" ]]; then
             backup_originals+=("true")
-            echo -e "  ${MAGENTA}[$idx] [ORIGINAL] $bcn v$bav — $bdate${NC}"
+            echo -e "  ${MAGENTA}[$idx] [ORIGINAL] $bcn v$bav - $bdate${NC}"
         else
             backup_originals+=("false")
-            echo -e "  ${WHITE}[$idx]${NC} $bcn v$bav — $bdate"
+            echo -e "  ${WHITE}[$idx]${NC} $bcn v$bav - $bdate"
         fi
     done <<< "$backup_list"
 
@@ -963,7 +962,7 @@ run_restore() {
     if restore_from_backup "$sel_path" "$target_voice" "$sel_orig"; then
         status "" green
         if [[ "$sel_orig" == "true" ]]; then
-            status "[OK] Restore complete — ORIGINAL modules restored (mono audio)" magenta
+            status "[OK] Restore complete - ORIGINAL modules restored (mono audio)" magenta
         else
             status "[OK] Restore complete!" green
         fi
@@ -977,9 +976,9 @@ run_restore() {
     fi
 }
 
-# ═══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
 #  INTERACTIVE MODE
-# ═══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
 run_interactive() {
     banner
     check_dependencies
@@ -993,7 +992,7 @@ run_interactive() {
         echo ""
         echo "Searched the following locations:"
         for p in "${SEARCH_PATHS[@]}"; do
-            [[ -d "$p" ]] && echo -e "  ${RED}✗${NC} $p" || echo -e "  ${DIM}- $p${NC}"
+            [[ -d "$p" ]] && echo -e "  ${RED}[X]${NC} $p" || echo -e "  ${DIM}- $p${NC}"
         done
         echo ""
         echo "Make sure Discord is installed and has been opened at least once."
@@ -1020,7 +1019,7 @@ run_interactive() {
             NEW)     status "  ${CLIENT_NAMES[$i]}: Never fixed" yellow ;;
             UPDATED)
                 IFS='|' read -r _ old new date <<< "$result"
-                status "  ${CLIENT_NAMES[$i]}: Updated v$old → v$new" orange
+                status "  ${CLIENT_NAMES[$i]}: Updated v$old -> v$new" orange
                 ;;
             OK)
                 IFS='|' read -r _ ver date <<< "$result"
@@ -1034,7 +1033,7 @@ run_interactive() {
     # Main menu
     while true; do
         echo ""
-        echo -e "${CYAN}══════════════════════════════════════════════════${NC}"
+        echo -e "${CYAN}==================================================${NC}"
         echo -e "  ${WHITE}[1]${NC} Fix single client"
         echo -e "  ${GREEN}[2]${NC} Fix ALL clients"
         echo -e "  ${BLUE}[3]${NC} Verify fix status"
@@ -1042,7 +1041,7 @@ run_interactive() {
         echo -e "  ${YELLOW}[5]${NC} Check for Discord updates"
         echo -e "  ${DIM}[6]${NC} Open backup folder"
         echo -e "  ${RED}[Q]${NC} Quit"
-        echo -e "${CYAN}══════════════════════════════════════════════════${NC}"
+        echo -e "${CYAN}==================================================${NC}"
         echo ""
         read -rp "  Choice: " choice
 
@@ -1163,13 +1162,13 @@ menu_fix_all() {
     remove_old_backups
 
     status "" blue
-    echo -e "${CYAN}═══════════════════════════════════════════════════${NC}"
+    echo -e "${CYAN}===================================================${NC}"
     if [[ $failed -eq 0 ]]; then
-        echo -e "${GREEN}  ✓ FIX ALL COMPLETE: $success/${#CLIENT_NAMES[@]} successful${NC}"
+        echo -e "${GREEN}  [OK] FIX ALL COMPLETE: $success/${#CLIENT_NAMES[@]} successful${NC}"
     else
         echo -e "${YELLOW}  FIX ALL: $success/${#CLIENT_NAMES[@]} successful, $failed failed${NC}"
     fi
-    echo -e "${CYAN}═══════════════════════════════════════════════════${NC}"
+    echo -e "${CYAN}===================================================${NC}"
     echo ""
     status "Restart Discord to apply changes." cyan
     echo ""
@@ -1191,10 +1190,10 @@ menu_verify() {
         IFS='|' read -r rstatus rmsg rest <<< "$result"
 
         case "$rstatus" in
-            FIXED)    echo -e "  ${GREEN}[✓]${NC} ${CLIENT_NAMES[$i]} — ${GREEN}Stereo fix is active${NC}" ;;
-            NOTFIXED) echo -e "  ${YELLOW}[✗]${NC} ${CLIENT_NAMES[$i]} — ${YELLOW}Original mono modules${NC}" ;;
-            UNKNOWN)  echo -e "  ${DIM}[?]${NC} ${CLIENT_NAMES[$i]} — ${DIM}$rmsg${NC}" ;;
-            ERROR)    echo -e "  ${RED}[X]${NC} ${CLIENT_NAMES[$i]} — ${RED}$rmsg${NC}" ;;
+            FIXED)    echo -e "  ${GREEN}[OK]${NC} ${CLIENT_NAMES[$i]} - ${GREEN}Stereo fix is active${NC}" ;;
+            NOTFIXED) echo -e "  ${YELLOW}[X]${NC} ${CLIENT_NAMES[$i]} - ${YELLOW}Original mono modules${NC}" ;;
+            UNKNOWN)  echo -e "  ${DIM}[?]${NC} ${CLIENT_NAMES[$i]} - ${DIM}$rmsg${NC}" ;;
+            ERROR)    echo -e "  ${RED}[X]${NC} ${CLIENT_NAMES[$i]} - ${RED}$rmsg${NC}" ;;
         esac
     done
 
@@ -1212,11 +1211,11 @@ menu_check_updates() {
         local rtype="${result%%|*}"
         case "$rtype" in
             NEW)
-                echo -e "  ${YELLOW}[NEW]${NC} ${CLIENT_NAMES[$i]}: v${CLIENT_VERSIONS[$i]} — Never fixed"
+                echo -e "  ${YELLOW}[NEW]${NC} ${CLIENT_NAMES[$i]}: v${CLIENT_VERSIONS[$i]} - Never fixed"
                 ;;
             UPDATED)
                 IFS='|' read -r _ old new date <<< "$result"
-                echo -e "  ${ORANGE}[UPDATE]${NC} ${CLIENT_NAMES[$i]}: v$old → v$new"
+                echo -e "  ${ORANGE}[UPDATE]${NC} ${CLIENT_NAMES[$i]}: v$old -> v$new"
                 ;;
             OK)
                 IFS='|' read -r _ ver date <<< "$result"
@@ -1230,9 +1229,9 @@ menu_check_updates() {
     echo ""
 }
 
-# ═══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
 #  ENTRY POINT
-# ═══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
 if $SILENT_MODE || $CHECK_ONLY; then
     check_dependencies
     ensure_app_dirs

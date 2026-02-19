@@ -1,8 +1,8 @@
-Copyright © 2026 Discord Audio Collective
+Copyright (c) 2026 Discord Audio Collective
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of the
 accompanying source files (including patching scripts, build tools, documentation,
-and injected C++ code) — collectively referred to as "the Software" — to deal in
+and injected C++ code) - collectively referred to as "the Software" - to deal in
 the Software without restriction, including without limitation the rights to use,
 copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
 Software, subject to the following conditions:
@@ -17,7 +17,7 @@ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTIO
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-⚠️ IMPORTANT CLARIFICATIONS:
+WARNING: IMPORTANT CLARIFICATIONS:
 
 1. This license applies ONLY to the patching tools, scripts, and injected code
    provided by this project.

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ###############################################################################
-# Discord Voice Quality Patcher — Linux
+# Discord Voice Quality Patcher - Linux
 # 48kHz | 512kbps | Stereo | Configurable Gain
 # Made by: Oracle | Shaun | Hallow | Ascend | Sentry | Sikimzo | Cypher
 ###############################################################################
@@ -17,11 +17,11 @@ AUDIO_GAIN=1
 SKIP_BACKUP=false
 RESTORE_MODE=false
 
-# ─── Colors ───────────────────────────────────────────────────────────────────
+# --- Colors ------------------------------------------------------------------
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; CYAN='\033[0;36m'
 WHITE='\033[1;37m'; DIM='\033[0;90m'; BOLD='\033[1m'; NC='\033[0m'
 
-# ─── Config ───────────────────────────────────────────────────────────────────
+# --- Config ------------------------------------------------------------------
 SAMPLE_RATE=48000
 BITRATE=512
 CACHE_DIR="$HOME/.cache/DiscordVoicePatcher"
@@ -29,13 +29,13 @@ BACKUP_DIR="$CACHE_DIR/Backups"
 LOG_FILE="$CACHE_DIR/patcher.log"
 TEMP_DIR="$CACHE_DIR/build"
 
-# ─── Build fingerprint (update when targeting a new Discord build) ─────────────
+# --- Build fingerprint (update when targeting a new Discord build) ------------
 # Run: python discord_voice_node_offset_finder_v5.py <path/to/discord_voice.node>
 # Copy the "COPY BELOW" block output into this section.
 EXPECTED_MD5="55fa8e3fcf665ffa223e1dcde3cba3b0"
 EXPECTED_SIZE=88674536
 
-# ─── Linux/ELF patch offsets ───────────────────────────────────────────────────
+# --- Linux/ELF patch offsets --------------------------------------------------
 OFFSET_CreateAudioFrameStereo=0x20C4C3
 OFFSET_AudioEncoderOpusConfigSetChannels=0x5E8A55
 OFFSET_MonoDownmixer=0x1DAF86
@@ -56,7 +56,7 @@ OFFSET_EncoderConfigInit1=0x5E8A5F
 OFFSET_EncoderConfigInit2=0x5E8438
 FILE_OFFSET_ADJUSTMENT=0
 
-# ─── Original bytes at validation sites (must match offsets above) ─────────────
+# --- Original bytes at validation sites (must match offsets above) ------------
 ORIG_Emulate48Khz='{0x0F, 0x43, 0xD0}'
 ORIG_AudioEncoderOpusConfigIsOk='{0x55, 0x48, 0x89, 0xE5, 0x8B, 0x0F, 0x31, 0xC0}'
 ORIG_DownmixFunc='{0x55, 0x48, 0x89, 0xE5, 0x41, 0x57, 0x41, 0x56}'
@@ -69,7 +69,7 @@ ORIG_EncoderConfigInit2='{0x00, 0x7D, 0x00, 0x00}'
 # Track overall success for conditional cleanup
 PATCH_SUCCESS=false
 
-# ─── Logging ──────────────────────────────────────────────────────────────────
+# --- Logging -----------------------------------------------------------------
 log_info()  { echo -e "${WHITE}[--]${NC} $1"; echo "[INFO] $1" >> "$LOG_FILE" 2>/dev/null; }
 log_ok()    { echo -e "${GREEN}[OK]${NC} $1"; echo "[OK] $1" >> "$LOG_FILE" 2>/dev/null; }
 log_warn()  { echo -e "${YELLOW}[!!]${NC} $1"; echo "[WARN] $1" >> "$LOG_FILE" 2>/dev/null; }
@@ -92,7 +92,7 @@ show_settings() {
     echo ""
 }
 
-# ─── Parse Args ───────────────────────────────────────────────────────────────
+# --- Parse Args --------------------------------------------------------------
 usage() {
     echo "Usage: $0 [gain] [options]"
     echo ""
@@ -129,13 +129,13 @@ if ! $RESTORE_MODE; then
     fi
 fi
 
-# ─── Initialize ───────────────────────────────────────────────────────────────
+# --- Initialize --------------------------------------------------------------
 mkdir -p "$CACHE_DIR" "$BACKUP_DIR" "$TEMP_DIR"
 echo "=== Discord Voice Patcher Log ===" > "$LOG_FILE"
 echo "Started: $(date)" >> "$LOG_FILE"
 echo "Platform: Linux | Gain: ${AUDIO_GAIN}x" >> "$LOG_FILE"
 
-# ─── Discord Client Detection ────────────────────────────────────────────────
+# --- Discord Client Detection ------------------------------------------------
 declare -a CLIENT_NAMES=()
 declare -a CLIENT_NODES=()
 
@@ -219,7 +219,7 @@ find_discord_clients() {
     return 0
 }
 
-# ─── Binary Verification ────────────────────────────────────────────────────
+# --- Binary Verification -----------------------------------------------------
 verify_binary() {
     local node_path="$1"
     local name="$2"
@@ -267,7 +267,7 @@ verify_binary() {
     return 0
 }
 
-# ─── Backup Management ───────────────────────────────────────────────────────
+# --- Backup Management -------------------------------------------------------
 backup_node() {
     local source="$1"
     local client_name="$2"
@@ -300,7 +300,7 @@ backup_node() {
     cp "$source" "$backup_path"
     log_ok "Backup: $(basename "$backup_path")"
 
-    # Prune old backups per client (keep 3 — ~225MB for a 75MB node)
+    # Prune old backups per client (keep 3 - ~225MB for a 75MB node)
     local count
     count=$(ls -1 "$BACKUP_DIR"/discord_voice.node."${sanitized}".*.backup 2>/dev/null | wc -l || true)
     if (( count > 3 )); then
@@ -364,7 +364,7 @@ restore_from_backup() {
     exit 0
 }
 
-# ─── Compiler Detection ──────────────────────────────────────────────────────
+# --- Compiler Detection ------------------------------------------------------
 COMPILER=""
 COMPILER_TYPE=""
 
@@ -390,7 +390,7 @@ find_compiler() {
     return 1
 }
 
-# ─── Source Code Generation ───────────────────────────────────────────────────
+# --- Source Code Generation --------------------------------------------------
 generate_amplifier_source() {
     local multiplier=$(( AUDIO_GAIN - 2 ))
     cat > "$TEMP_DIR/amplifier.cpp" << AMPEOF
@@ -467,7 +467,7 @@ private:
     bool ApplyPatches(void* fileData, long long fileSize) {
         printf("Validating binary before patching...\n");
 
-        // File size range check — catches completely wrong files early
+        // File size range check - catches completely wrong files early
         constexpr long long MIN_EXPECTED_SIZE = 70LL * 1024 * 1024;   // 70 MB
         constexpr long long MAX_EXPECTED_SIZE = 110LL * 1024 * 1024;  // 110 MB
         if (fileSize < MIN_EXPECTED_SIZE || fileSize > MAX_EXPECTED_SIZE) {
@@ -538,7 +538,7 @@ private:
             printf("  EncoderConfigInit2     (0x%06X): %s\n", Offsets::EncoderConfigInit2, o8 ? "OK" : "MISMATCH");
 
             if (!o1 || !o2 || !o3 || !o4 || !o5 || !o6 || !o7 || !o8) {
-                printf("\nERROR: Binary validation FAILED — unexpected bytes at patch sites.\n");
+                printf("\nERROR: Binary validation FAILED - unexpected bytes at patch sites.\n");
                 printf("This discord_voice.node does not match the expected build.\n");
                 printf("These offsets cannot be safely applied to a different version.\n");
                 return false;
@@ -572,7 +572,7 @@ private:
         if (!PatchBytes(Offsets::DcReject, (const char*)dc_reject, 0x1B6)) return false;
         // DownmixFunc: ret (void function, safe)
         if (!PatchBytes(Offsets::DownmixFunc, "\xC3", 1)) return false;
-        // AudioEncoderOpusConfigIsOk returns bool — must return TRUE (1)
+        // AudioEncoderOpusConfigIsOk returns bool - must return TRUE (1)
         // Using mov rax,1; ret (8 bytes) matching Windows patcher approach
         if (!PatchBytes(Offsets::AudioEncoderOpusConfigIsOk,
             "\x48\xC7\xC0\x01\x00\x00\x00\xC3", 8)) return false;
@@ -689,7 +689,7 @@ PATCHEOF
     sed -i "s/ORIG_VAL_EncoderConfigInit2/$ORIG_EncoderConfigInit2/g" "$TEMP_DIR/patcher.cpp"
 }
 
-# ─── Compilation ──────────────────────────────────────────────────────────────
+# --- Compilation -------------------------------------------------------------
 compile_patcher() {
     # All log output goes to stderr so stdout is ONLY the exe path
     log_info "Compiling patcher with $COMPILER_TYPE..." >&2
@@ -717,7 +717,7 @@ compile_patcher() {
     return 0
 }
 
-# ─── Client Selection ────────────────────────────────────────────────────────
+# --- Client Selection --------------------------------------------------------
 select_clients() {
     echo ""
     echo -e "${CYAN}  Installed Discord clients:${NC}"
@@ -749,7 +749,7 @@ select_clients() {
     esac
 }
 
-# ─── Patch a single client ────────────────────────────────────────────────────
+# --- Patch a single client ---------------------------------------------------
 patch_client() {
     local idx="$1"
     local name="${CLIENT_NAMES[$idx]}"
@@ -803,9 +803,9 @@ patch_client() {
     fi
 }
 
-# ─── Cleanup ──────────────────────────────────────────────────────────────────
+# --- Cleanup -----------------------------------------------------------------
 cleanup() {
-    # Only clean up source/binary on success — preserve on failure for debugging
+    # Only clean up source/binary on success - preserve on failure for debugging
     if [[ "$PATCH_SUCCESS" == "true" ]]; then
         rm -f "$TEMP_DIR/patcher.cpp" "$TEMP_DIR/amplifier.cpp" \
               "$TEMP_DIR/DiscordVoicePatcher" 2>/dev/null
@@ -815,7 +815,7 @@ cleanup() {
     fi
 }
 
-# ─── Main ─────────────────────────────────────────────────────────────────────
+# --- Main --------------------------------------------------------------------
 main() {
     banner
 
@@ -842,7 +842,7 @@ main() {
         selection=$?
     fi
 
-    # Check if Discord is running and warn — no kill needed on Linux,
+    # Check if Discord is running and warn - no kill needed on Linux,
     # files aren't locked like on Windows.
     # pgrep -x uses ERE: use | not \| for alternation
     if pgrep -x "Discord|discord|DiscordCanary|DiscordPTB" >/dev/null 2>&1; then
@@ -880,13 +880,13 @@ main() {
     cleanup
 
     echo ""
-    echo -e "${CYAN}═══════════════════════════════════════════════${NC}"
+    echo -e "${CYAN}===============================================${NC}"
     if (( failed == 0 )); then
-        echo -e "${GREEN}  ✓ PATCHING COMPLETE: $success/$total successful${NC}"
+        echo -e "${GREEN}  [OK] PATCHING COMPLETE: $success/$total successful${NC}"
     else
         echo -e "${YELLOW}  PATCHING: $success/$total successful, $failed failed${NC}"
     fi
-    echo -e "${CYAN}═══════════════════════════════════════════════${NC}"
+    echo -e "${CYAN}===============================================${NC}"
     echo ""
     echo "Restart Discord to apply changes."
 }

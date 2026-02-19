@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ###############################################################################
-# DISCORD VOICE FIXER — Stereo Audio Module Installer (Linux)
+# DISCORD VOICE FIXER - Stereo Audio Module Installer (Linux)
 # Downloads and installs pre-patched stereo voice modules
 # Usage: ./Stereo-Installer-Linux.sh [--silent] [--check] [--restore] [--help]
 # Made by: Oracle | Shaun | Hallow | Ascend | Sentry | Sikimzo | Cypher
@@ -9,7 +9,7 @@ set -euo pipefail
 
 SCRIPT_VERSION="2.0"
 
-# ─── Configuration ────────────────────────────────────────────────────────────
+# --- Configuration -----------------------------------------------------------
 VOICE_BACKUP_API="https://api.github.com/repos/ProdHallow/Discord-Stereo-Windows-MacOS-Linux/contents/Linux%20Beta%20Patcher/discord_voice"
 UPDATE_URL="https://raw.githubusercontent.com/ProdHallow/Discord-Stereo-Windows-MacOS-Linux/main/Linux%20Beta%20Patcher/Stereo-Installer-Linux.sh"
 
@@ -22,13 +22,13 @@ LOG_FILE="$APP_DATA_ROOT/debug.log"
 MAX_BACKUPS_PER_CLIENT=1
 MAX_LOG_SIZE_MB=5
 
-# ─── Colors ───────────────────────────────────────────────────────────────────
+# --- Colors ------------------------------------------------------------------
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; CYAN='\033[0;36m'
 MAGENTA='\033[0;35m'; WHITE='\033[1;37m'; DIM='\033[0;90m'; BLUE='\033[0;34m'
 BOLD='\033[1m'; NC='\033[0m'; ORANGE='\033[0;33m'
 LIMEGREEN='\033[1;32m'; UNDERLINE='\033[4m'
 
-# ─── CLI Flags ────────────────────────────────────────────────────────────────
+# --- CLI Flags ---------------------------------------------------------------
 SILENT_MODE=false
 CHECK_ONLY=false
 RESTORE_MODE=false
@@ -47,7 +47,7 @@ for arg in "$@"; do
         --cleanup)      CLEANUP_MODE=true ;;
         --no-restart)   AUTO_RESTART_DISCORD=false ;;
         --help|-h)
-            echo "Discord Voice Fixer — Linux Installer v${SCRIPT_VERSION}"
+            echo "Discord Voice Fixer - Linux Installer v${SCRIPT_VERSION}"
             echo ""
             echo "Usage: $0 [options]"
             echo ""
@@ -72,7 +72,7 @@ for arg in "$@"; do
     esac
 done
 
-# ─── Logging ──────────────────────────────────────────────────────────────────
+# --- Logging -----------------------------------------------------------------
 ensure_dir() { [[ -d "$1" ]] || mkdir -p "$1" 2>/dev/null || true; }
 
 rotate_log() {
@@ -111,28 +111,27 @@ status() {
 
 banner() {
     echo ""
-    echo -e "${CYAN}╔══════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║${NC}  ${WHITE}${BOLD}Discord Voice Fixer${NC} — ${CYAN}Linux Installer v${SCRIPT_VERSION}${NC}        ${CYAN}║${NC}"
-    echo -e "${CYAN}║${NC}  ${DIM}48kHz | 512kbps | True Stereo | Filterless${NC}        ${CYAN}║${NC}"
-    echo -e "${CYAN}║${NC}  ${DIM}Oracle | Shaun | Hallow | Ascend | Sentry${NC}         ${CYAN}║${NC}"
-    echo -e "${CYAN}║${NC}  ${DIM}Sikimzo | Cypher${NC}                                  ${CYAN}║${NC}"
-    echo -e "${CYAN}╚══════════════════════════════════════════════════════╝${NC}"
+    echo -e "${CYAN}======================================================${NC}"
+    echo -e "${WHITE}${BOLD}Discord Voice Fixer${NC} - ${CYAN}Linux Installer v${SCRIPT_VERSION}${NC}"
+    echo -e "${DIM}48kHz | 512kbps | True Stereo | Filterless${NC}"
+    echo -e "${DIM}Oracle | Shaun | Hallow | Ascend | Sentry | Sikimzo | Cypher${NC}"
+    echo -e "${CYAN}======================================================${NC}"
     echo ""
 }
 
-# ─── Progress Bar ─────────────────────────────────────────────────────────────
+# --- Progress Bar ------------------------------------------------------------
 progress_bar() {
     local pct="$1" label="${2:-Working...}" width=40
     local filled=$(( pct * width / 100 ))
     local empty=$(( width - filled ))
     local bar=""
-    for (( i=0; i<filled; i++ )); do bar+="█"; done
-    for (( i=0; i<empty; i++ )); do bar+="░"; done
+    for (( i=0; i<filled; i++ )); do bar+="#"; done
+    for (( i=0; i<empty; i++ )); do bar+="-"; done
     printf "\r  ${CYAN}[${bar}]${NC} ${WHITE}%3d%%${NC} ${DIM}%s${NC}  " "$pct" "$label"
     if [[ "$pct" -ge 100 ]]; then echo ""; fi
 }
 
-# ─── Dependency Check ─────────────────────────────────────────────────────────
+# --- Dependency Check --------------------------------------------------------
 check_dependencies() {
     local missing=()
     command -v curl   &>/dev/null || missing+=("curl")
@@ -151,7 +150,7 @@ check_dependencies() {
     log_file "INFO" "Dependencies OK: curl, jq, md5sum"
 }
 
-# ─── Settings Management ─────────────────────────────────────────────────────
+# --- Settings Management -----------------------------------------------------
 load_settings() {
     if [[ -f "$SETTINGS_FILE" ]]; then
         AUTO_RESTART_DISCORD=$(jq -r '.AutoStartDiscord // true' "$SETTINGS_FILE" 2>/dev/null || echo "true")
@@ -170,7 +169,7 @@ save_settings() {
 EOF
 }
 
-# ─── Disk Space Check ────────────────────────────────────────────────────────
+# --- Disk Space Check --------------------------------------------------------
 get_available_space_mb() {
     local path="$1"
     df -BM "$path" 2>/dev/null | tail -1 | awk '{gsub(/M/,"",$4); print $4}' || echo "0"
@@ -187,7 +186,7 @@ check_disk_space() {
     return 0
 }
 
-# ─── Discord Client Detection ────────────────────────────────────────────────
+# --- Discord Client Detection ------------------------------------------------
 declare -a CLIENT_NAMES=()
 declare -a CLIENT_PATHS=()
 declare -a CLIENT_APP_PATHS=()
@@ -359,7 +358,7 @@ find_discord_clients() {
     return 0
 }
 
-# ─── Process Management ──────────────────────────────────────────────────────
+# --- Process Management ------------------------------------------------------
 kill_discord() {
     local procs=("Discord" "DiscordCanary" "DiscordPTB" "DiscordDevelopment" "discord")
     local attempts=0 max_attempts=3
@@ -444,7 +443,7 @@ start_discord() {
     return 1
 }
 
-# ─── State Management ────────────────────────────────────────────────────────
+# --- State Management --------------------------------------------------------
 ensure_app_dirs() {
     ensure_dir "$APP_DATA_ROOT"
     ensure_dir "$BACKUP_ROOT"
@@ -507,7 +506,7 @@ check_discord_updated() {
     echo "OK|$current_version|$last_date"
 }
 
-# ─── Backup Validation ──────────────────────────────────────────────────────
+# --- Backup Validation ------------------------------------------------------
 backup_has_content() {
     local backup_path="$1"
     local voice_dir="$backup_path/voice_module"
@@ -571,7 +570,7 @@ validate_backup_integrity() {
     echo "VALID"
 }
 
-# ─── Backup Management ──────────────────────────────────────────────────────
+# --- Backup Management ------------------------------------------------------
 create_original_backup() {
     local voice_path="$1" client_name="$2" version="$3"
     local sname
@@ -586,7 +585,7 @@ create_original_backup() {
             status "  Original backup already exists and is valid" dim
             return 0
         else
-            status "  [!] Existing original backup is corrupted — recreating..." orange
+            status "  [!] Existing original backup is corrupted - recreating..." orange
             rm -rf "$backup_path"
         fi
     fi
@@ -616,7 +615,7 @@ create_original_backup() {
     cp -r "$voice_path"/* "$backup_path/voice_module/" 2>/dev/null
 
     if ! backup_has_content "$backup_path"; then
-        status "  [!] Backup validation failed — files may be corrupted" orange
+        status "  [!] Backup validation failed - files may be corrupted" orange
         rm -rf "$backup_path"
         return 1
     fi
@@ -764,7 +763,7 @@ cleanup_invalid_backups() {
         if [[ "$vstatus" == "INVALID" ]]; then
             local dirname
             dirname=$(basename "$dir")
-            status "  [X] $dirname — $vmsg" red
+            status "  [X] $dirname - $vmsg" red
             rm -rf "$dir" 2>/dev/null
             (( cleaned++ )) || true
         fi
@@ -782,7 +781,7 @@ cleanup_invalid_backups() {
         if [[ "$vstatus" == "INVALID" ]]; then
             local dirname
             dirname=$(basename "$dir")
-            status "  [X] [ORIGINAL] $dirname — $vmsg" red
+            status "  [X] [ORIGINAL] $dirname - $vmsg" red
             rm -rf "$dir" 2>/dev/null
             (( cleaned++ )) || true
         fi
@@ -862,7 +861,7 @@ restore_from_backup() {
 
     # Clear target and copy
     if [[ -z "$target_voice_path" ]] || [[ "$target_voice_path" == "/" ]]; then
-        status "[X] Invalid target path — aborting restore for safety" red
+        status "[X] Invalid target path - aborting restore for safety" red
         return 1
     fi
 
@@ -886,7 +885,7 @@ restore_from_backup() {
     return 0
 }
 
-# ─── Download Voice Backup Files ─────────────────────────────────────────────
+# --- Download Voice Backup Files ---------------------------------------------
 download_voice_files() {
     local dest_path="$1"
     local max_retries=3
@@ -911,7 +910,7 @@ download_voice_files() {
                 return 1
             fi
             if [[ $attempt -lt $max_retries ]]; then
-                status "  [!] Attempt $attempt failed — retrying..." orange
+                status "  [!] Attempt $attempt failed - retrying..." orange
                 continue
             fi
             status "  [X] Failed to fetch file list after $max_retries attempts" red
@@ -1033,7 +1032,7 @@ download_voice_files() {
     return 1
 }
 
-# ─── Verify Fix Status ──────────────────────────────────────────────────────
+# --- Verify Fix Status ------------------------------------------------------
 verify_fix() {
     local voice_path="$1" client_name="$2"
     local sname
@@ -1053,7 +1052,7 @@ verify_fix() {
 
     # Check for zero-size corruption
     if [[ "$current_size" -eq 0 ]]; then
-        echo "ERROR|Voice module file is empty (0 bytes) — corrupted"
+        echo "ERROR|Voice module file is empty (0 bytes) - corrupted"
         return
     fi
 
@@ -1078,10 +1077,10 @@ verify_fix() {
         fi
     fi
 
-    echo "UNKNOWN|No original backup to compare — run fix first|$current_hash|$current_size"
+    echo "UNKNOWN|No original backup to compare - run fix first|$current_hash|$current_size"
 }
 
-# ─── Script Self-Update Check ────────────────────────────────────────────────
+# --- Script Self-Update Check ------------------------------------------------
 check_script_update() {
     status "Checking for script updates..." blue
     local tmp_script
@@ -1092,7 +1091,7 @@ check_script_update() {
         remote_version=$(grep '^SCRIPT_VERSION=' "$tmp_script" 2>/dev/null | head -1 | cut -d'"' -f2 || true)
 
         if [[ -n "$remote_version" ]] && [[ "$remote_version" != "$SCRIPT_VERSION" ]]; then
-            status "[!] Script update available: v$SCRIPT_VERSION → v$remote_version" yellow
+            status "[!] Script update available: v$SCRIPT_VERSION -> v$remote_version" yellow
             echo ""
             echo -e "  Download from:"
             echo -e "  ${CYAN}${UNDERLINE}${UPDATE_URL}${NC}"
@@ -1110,7 +1109,7 @@ check_script_update() {
     return 1
 }
 
-# ─── Fix a Single Client ────────────────────────────────────────────────────
+# --- Fix a Single Client -----------------------------------------------------
 fix_client() {
     local idx="$1" download_path="$2"
     local name="${CLIENT_NAMES[$idx]}"
@@ -1129,7 +1128,7 @@ fix_client() {
 
     # Ensure writable
     if [[ -z "$voice_path" ]] || [[ "$voice_path" == "/" ]]; then
-        status "  [X] Invalid voice path — aborting for safety" red
+        status "  [X] Invalid voice path - aborting for safety" red
         return 1
     fi
 
@@ -1164,7 +1163,7 @@ fix_client() {
     local new_node
     new_node=$(find "$voice_path" -name "*.node" -type f 2>/dev/null | head -1 || true)
     if [[ -z "$new_node" ]]; then
-        status "  [X] No .node file found after copy — something went wrong" red
+        status "  [X] No .node file found after copy - something went wrong" red
         return 1
     fi
 
@@ -1193,9 +1192,9 @@ fix_client() {
     return 0
 }
 
-# ═══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
 #  DIAGNOSTICS
-# ═══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
 run_diagnostics() {
     banner
     check_dependencies
@@ -1218,9 +1217,9 @@ run_diagnostics() {
         if command -v "$dep" &>/dev/null; then
             local ver
             ver=$("$dep" --version 2>/dev/null | head -1 | head -c 60 || echo "version unavailable")
-            echo -e "  ${GREEN}✓${NC} $dep — $ver"
+            echo -e "  ${GREEN}[OK]${NC} $dep - $ver"
         else
-            echo -e "  ${RED}✗${NC} $dep — NOT FOUND"
+            echo -e "  ${RED}[X]${NC} $dep - NOT FOUND"
         fi
     done
     echo ""
@@ -1235,9 +1234,9 @@ run_diagnostics() {
         echo -e "${CYAN}Searched:${NC}"
         for p in "${SEARCH_PATHS[@]}"; do
             if [[ -d "$p" ]]; then
-                echo -e "  ${YELLOW}●${NC} $p (exists, no voice module)"
+                echo -e "  ${YELLOW}*${NC} $p (exists, no voice module)"
             else
-                echo -e "  ${DIM}○ $p${NC}"
+                echo -e "  ${DIM}- $p${NC}"
             fi
         done
     else
@@ -1265,10 +1264,10 @@ run_diagnostics() {
                 echo -e "    MD5:         $fhash"
 
                 if [[ $fsize -lt 1024 ]]; then
-                    echo -e "    ${RED}⚠ WARNING: File suspiciously small — may be corrupted${NC}"
+                    echo -e "    ${RED}[!] WARNING: File suspiciously small - may be corrupted${NC}"
                 fi
             else
-                echo -e "    ${RED}⚠ No .node file found!${NC}"
+                echo -e "    ${RED}[!] No .node file found!${NC}"
             fi
 
             # Check fix status
@@ -1288,7 +1287,7 @@ run_diagnostics() {
             local urtype="${uresult%%|*}"
             case "$urtype" in
                 NEW)     echo -e "    Update:      ${YELLOW}Never fixed${NC}" ;;
-                UPDATED) IFS='|' read -r _ old new _ <<< "$uresult"; echo -e "    Update:      ${ORANGE}Updated v$old → v$new${NC}" ;;
+                UPDATED) IFS='|' read -r _ old new _ <<< "$uresult"; echo -e "    Update:      ${ORANGE}Updated v$old -> v$new${NC}" ;;
                 OK)      IFS='|' read -r _ ver date <<< "$uresult"; echo -e "    Update:      ${GREEN}Up to date (fixed: $date)${NC}" ;;
             esac
         done
@@ -1349,9 +1348,9 @@ run_diagnostics() {
     echo ""
 }
 
-# ═══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
 #  SILENT MODE
-# ═══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
 run_silent() {
     log_file "INFO" "Starting in silent mode"
     find_discord_clients
@@ -1397,7 +1396,7 @@ run_silent() {
             result=$(check_discord_updated "${CLIENT_NAMES[$i]}" "${CLIENT_VERSIONS[$i]}")
             local rtype="${result%%|*}"
             case "$rtype" in
-                NEW)     echo "[NEW] ${CLIENT_NAMES[$i]}: v${CLIENT_VERSIONS[$i]} — Never fixed"; needs_fix=true ;;
+                NEW)     echo "[NEW] ${CLIENT_NAMES[$i]}: v${CLIENT_VERSIONS[$i]} - Never fixed"; needs_fix=true ;;
                 UPDATED) echo "[UPDATE] ${CLIENT_NAMES[$i]}: ${result#UPDATED|}"; needs_fix=true ;;
                 OK)      echo "[OK] ${CLIENT_NAMES[$i]}: ${result#OK|}" ;;
             esac
@@ -1463,9 +1462,9 @@ run_silent() {
     exit 0
 }
 
-# ═══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
 #  RESTORE MODE
-# ═══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
 run_restore() {
     banner
     ensure_app_dirs
@@ -1497,10 +1496,10 @@ run_restore() {
         backup_paths+=("$bpath")
         if [[ "$btype" == "ORIGINAL" ]]; then
             backup_originals+=("true")
-            echo -e "  ${MAGENTA}[$idx] [ORIGINAL] $bcn v$bav — $bdate${NC}"
+            echo -e "  ${MAGENTA}[$idx] [ORIGINAL] $bcn v$bav - $bdate${NC}"
         else
             backup_originals+=("false")
-            echo -e "  ${WHITE}[$idx]${NC} $bcn v$bav — $bdate"
+            echo -e "  ${WHITE}[$idx]${NC} $bcn v$bav - $bdate"
         fi
     done <<< "$backup_list"
 
@@ -1549,13 +1548,13 @@ run_restore() {
     if restore_from_backup "$sel_path" "$target_voice" "$sel_orig"; then
         status "" green
         if [[ "$sel_orig" == "true" ]]; then
-            status "═══════════════════════════════════════════════════" magenta
-            status "  RESTORE COMPLETE — Original mono modules restored" magenta
-            status "═══════════════════════════════════════════════════" magenta
+            status "===========================================" magenta
+            status "  RESTORE COMPLETE - Original mono modules restored" magenta
+            status "===========================================" magenta
         else
-            status "═══════════════════════════════════════════════════" green
+            status "===========================================" green
             status "  RESTORE COMPLETE" green
-            status "═══════════════════════════════════════════════════" green
+            status "===========================================" green
         fi
         status "Restart Discord to apply changes." cyan
 
@@ -1572,9 +1571,9 @@ run_restore() {
     fi
 }
 
-# ═══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
 #  INTERACTIVE MODE
-# ═══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
 run_interactive() {
     banner
     check_dependencies
@@ -1601,14 +1600,14 @@ run_interactive() {
                 app_dirs=$(find "$base" -maxdepth 1 -type d -name "app-*" 2>/dev/null | head -1 || true)
                 if [[ -n "$app_dirs" ]]; then
                     if [[ -d "$app_dirs/modules" ]]; then
-                        echo -e "  ${YELLOW}●${NC} ${SEARCH_NAMES[$i]} — ${YELLOW}modules folder exists but no voice module${NC}"
+                        echo -e "  ${YELLOW}*${NC} ${SEARCH_NAMES[$i]} - ${YELLOW}modules folder exists but no voice module${NC}"
                         echo -e "    ${DIM}Join a voice channel in Discord to trigger voice module download${NC}"
                     else
-                        echo -e "  ${RED}●${NC} ${SEARCH_NAMES[$i]} — ${RED}missing modules folder (corrupted)${NC}"
+                        echo -e "  ${RED}*${NC} ${SEARCH_NAMES[$i]} - ${RED}missing modules folder (corrupted)${NC}"
                         echo -e "    ${DIM}Reinstall Discord to fix this${NC}"
                     fi
                 else
-                    echo -e "  ${ORANGE}●${NC} ${SEARCH_NAMES[$i]} — ${ORANGE}found config but no app folders${NC}"
+                    echo -e "  ${ORANGE}*${NC} ${SEARCH_NAMES[$i]} - ${ORANGE}found config but no app folders${NC}"
                 fi
             fi
         done
@@ -1616,7 +1615,7 @@ run_interactive() {
         if ! $found_any; then
             echo "  Searched the following locations:"
             for p in "${SEARCH_PATHS[@]}"; do
-                echo -e "    ${DIM}○ $p${NC}"
+                echo -e "    ${DIM}- $p${NC}"
             done
             echo ""
             echo "  Make sure Discord is installed and has been opened at least once."
@@ -1653,7 +1652,7 @@ run_interactive() {
             NEW)     status "  ${CLIENT_NAMES[$i]}: Never fixed" yellow; has_updates=true ;;
             UPDATED)
                 IFS='|' read -r _ old new date <<< "$result"
-                status "  ${CLIENT_NAMES[$i]}: Updated v$old → v$new" orange
+                status "  ${CLIENT_NAMES[$i]}: Updated v$old -> v$new" orange
                 has_updates=true
                 ;;
             OK)
@@ -1668,7 +1667,7 @@ run_interactive() {
     # Main menu
     while true; do
         echo ""
-        echo -e "${CYAN}══════════════════════════════════════════════════════${NC}"
+        echo -e "${CYAN}======================================================${NC}"
         echo -e "  ${WHITE}[1]${NC} Fix single client"
         echo -e "  ${GREEN}[2]${NC} Fix ALL clients"
         echo -e "  ${BLUE}[3]${NC} Verify fix status"
@@ -1679,7 +1678,7 @@ run_interactive() {
         echo -e "  ${DIM}[8]${NC} Check for script updates"
         echo -e "  ${DIM}[9]${NC} Open backup folder"
         echo -e "  ${RED}[Q]${NC} Quit"
-        echo -e "${CYAN}══════════════════════════════════════════════════════${NC}"
+        echo -e "${CYAN}======================================================${NC}"
         echo ""
         read -rp "  Choice: " choice
 
@@ -1756,24 +1755,24 @@ menu_fix_single() {
     if fix_client "$idx" "$download_path"; then
         remove_old_backups
         echo ""
-        echo -e "${GREEN}═══════════════════════════════════════════════════${NC}"
-        echo -e "${GREEN}  ✓ FIX COMPLETED SUCCESSFULLY${NC}"
-        echo -e "${GREEN}═══════════════════════════════════════════════════${NC}"
+        echo -e "${GREEN}===========================================${NC}"
+        echo -e "${GREEN}  [OK] FIX COMPLETED SUCCESSFULLY${NC}"
+        echo -e "${GREEN}===========================================${NC}"
         echo ""
 
         if $AUTO_RESTART_DISCORD; then
             read -rp "  Start Discord now? (Y/n): " start_confirm
             if [[ "${start_confirm,,}" != "n" ]]; then
-                start_discord && status "[OK] Discord started" green || status "[!] Could not start Discord — start it manually" orange
+                start_discord && status "[OK] Discord started" green || status "[!] Could not start Discord - start it manually" orange
             fi
         else
             status "Restart Discord to apply changes." cyan
         fi
     else
         echo ""
-        echo -e "${RED}═══════════════════════════════════════════════════${NC}"
-        echo -e "${RED}  ✗ FIX FAILED${NC}"
-        echo -e "${RED}═══════════════════════════════════════════════════${NC}"
+        echo -e "${RED}===========================================${NC}"
+        echo -e "${RED}  [X] FIX FAILED${NC}"
+        echo -e "${RED}===========================================${NC}"
         echo ""
         status "Check the log at: $LOG_FILE" dim
     fi
@@ -1785,7 +1784,7 @@ menu_fix_all() {
     echo ""
     echo -e "  ${WHITE}Fix all ${#CLIENT_NAMES[@]} client(s)?${NC}"
     for i in "${!CLIENT_NAMES[@]}"; do
-        echo -e "    ${CYAN}•${NC} ${CLIENT_NAMES[$i]} (v${CLIENT_VERSIONS[$i]})"
+        echo -e "    ${CYAN}-${NC} ${CLIENT_NAMES[$i]} (v${CLIENT_VERSIONS[$i]})"
     done
     echo ""
     read -rp "  Continue? (Y/n): " confirm
@@ -1832,22 +1831,22 @@ menu_fix_all() {
     remove_old_backups
 
     echo ""
-    echo -e "${CYAN}═══════════════════════════════════════════════════════${NC}"
+    echo -e "${CYAN}=======================================================${NC}"
     if [[ $failed -eq 0 ]]; then
-        echo -e "${GREEN}  ✓ FIX ALL COMPLETE: $success/${#CLIENT_NAMES[@]} successful${NC}"
+        echo -e "${GREEN}  [OK] FIX ALL COMPLETE: $success/${#CLIENT_NAMES[@]} successful${NC}"
     else
         echo -e "${YELLOW}  FIX ALL: $success/${#CLIENT_NAMES[@]} successful, $failed failed${NC}"
         for fn in "${fail_names[@]}"; do
-            echo -e "    ${RED}✗${NC} $fn"
+            echo -e "    ${RED}[X]${NC} $fn"
         done
     fi
-    echo -e "${CYAN}═══════════════════════════════════════════════════════${NC}"
+    echo -e "${CYAN}=======================================================${NC}"
     echo ""
 
     if $AUTO_RESTART_DISCORD && [[ $success -gt 0 ]]; then
         read -rp "  Start Discord now? (Y/n): " start_confirm
         if [[ "${start_confirm,,}" != "n" ]]; then
-            start_discord && status "[OK] Discord started" green || status "[!] Could not start Discord — start it manually" orange
+            start_discord && status "[OK] Discord started" green || status "[!] Could not start Discord - start it manually" orange
         fi
     else
         status "Restart Discord to apply changes." cyan
@@ -1869,12 +1868,12 @@ menu_verify() {
 
         case "$rstatus" in
             FIXED)
-                echo -e "  ${GREEN}[✓]${NC} ${CLIENT_NAMES[$i]}"
+                echo -e "  ${GREEN}[OK]${NC} ${CLIENT_NAMES[$i]}"
                 echo -e "      ${GREEN}Stereo fix is active${NC}"
                 ;;
             NOTFIXED)
-                echo -e "  ${YELLOW}[✗]${NC} ${CLIENT_NAMES[$i]}"
-                echo -e "      ${YELLOW}Original mono modules — run fix to enable stereo${NC}"
+                echo -e "  ${YELLOW}[X]${NC} ${CLIENT_NAMES[$i]}"
+                echo -e "      ${YELLOW}Original mono modules - run fix to enable stereo${NC}"
                 ;;
             UNKNOWN)
                 echo -e "  ${DIM}[?]${NC} ${CLIENT_NAMES[$i]}"
@@ -1907,11 +1906,11 @@ menu_check_updates() {
         local rtype="${result%%|*}"
         case "$rtype" in
             NEW)
-                echo -e "  ${YELLOW}[NEW]${NC} ${CLIENT_NAMES[$i]}: v${CLIENT_VERSIONS[$i]} — Never fixed"
+                echo -e "  ${YELLOW}[NEW]${NC} ${CLIENT_NAMES[$i]}: v${CLIENT_VERSIONS[$i]} - Never fixed"
                 ;;
             UPDATED)
                 IFS='|' read -r _ old new date <<< "$result"
-                echo -e "  ${ORANGE}[UPDATE]${NC} ${CLIENT_NAMES[$i]}: v$old → v$new"
+                echo -e "  ${ORANGE}[UPDATE]${NC} ${CLIENT_NAMES[$i]}: v$old -> v$new"
                 echo -e "         ${YELLOW}Re-running the fix is recommended${NC}"
                 ;;
             OK)
@@ -1926,9 +1925,9 @@ menu_check_updates() {
     echo ""
 }
 
-# ═══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
 #  ENTRY POINT
-# ═══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
 if $DIAG_MODE; then
     run_diagnostics
 elif $CLEANUP_MODE; then
