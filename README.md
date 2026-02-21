@@ -384,10 +384,10 @@ Manual hex editing works for a one-off patch, but breaks the moment Discord upda
 ## 🤝 Partners
 
 - **[Shaun (sh6un)](https://github.com/sh6un)**
-- **[UnpackedX](https://codeberg.org/UnpackedX)** - [Voice Playgrounds Site](https://discord-voice.xyz/)
+- **[UnpackedX](https://codeberg.org/UnpackedX)** - [Voice Playgrounds Site](https://discord-voice.xyz/) **[Codeberg](-# https://codeberg.org/UnpackedX)**
 - **[Oracle (oracle-dsc)](https://github.com/oracle-dsc)**
 - **[Loof-sys](https://github.com/LOOF-sys)**
-- **[HorrorPills / Geeko](https://github.com/HorrorPills)**
+- **[HorrorPills / Geeko](https://github.com/HorrorPills)** **[Codeberg](https://codeberg.org/HorrorPills)**
 - **[Hallow](https://github.com/ProdHallow)**
 - **[Ascend](https://github.com/bloodybapestas)**
 - BluesCat
