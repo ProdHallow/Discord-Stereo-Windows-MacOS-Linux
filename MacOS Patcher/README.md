@@ -1,4 +1,5 @@
 # 🍎 macOS Patcher
+> ## (Update in progress, This `README` is out of date)
 
 **True stereo and high-bitrate voice for Discord on macOS**
 
