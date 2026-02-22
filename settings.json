@@ -1,0 +1,31 @@
+{
+  "SKIP_HOST_UPDATE": true,
+  "SKIP_MODULE_UPDATE": true,
+  "IS_MAXIMIZED": true,
+  "IS_MINIMIZED": false,
+  "MIN_HEIGHT": 500,
+  "MIN_WIDTH": 940,
+  "WINDOW_BOUNDS": {
+    "x": 0,
+    "y": 0,
+    "width": 3440,
+    "height": 1440
+  },
+  "audioSubsystem": "experimental",
+  "chromiumSwitches": {},
+  "debugLogging": false,
+  "enableHardwareAcceleration": true,
+  "useLegacyAudioDevice": false,
+  "BACKGROUND_COLOR": "#121214",
+  "DANGEROUS_ENABLE_DEVTOOLS_ONLY_ENABLE_IF_YOU_KNOW_WHAT_YOURE_DOING": true,
+  "openasar": {
+    "setup": true,
+    "quickstart": false
+  },
+  "trayBalloonShown": true,
+  "MINIMIZE_TO_TRAY": false,
+  "OPEN_ON_STARTUP": false,
+  "offloadAdmControls": true,
+  "OPTIN_OPTIONAL_UPDATES": true,
+  "asyncVideoInputDeviceInit": false
+}
