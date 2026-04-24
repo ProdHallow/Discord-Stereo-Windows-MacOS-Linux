@@ -1747,6 +1747,30 @@ function Remove-PatcherTempFiles {
 
 function Get-AmplifierSourceCode {
     $gain = [int]$Script:Config.AudioGainMultiplier
+    if ($gain -gt 3) {
+        return @"
+typedef signed char        int8_t;
+typedef short              int16_t;
+typedef int                int32_t;
+typedef long long          int64_t;
+typedef unsigned char      uint8_t;
+typedef unsigned short     uint16_t;
+typedef unsigned int       uint32_t;
+typedef unsigned long long uint64_t;
+
+extern "C" void __cdecl hp_cutoff(const float* in, int cutoff_Hz, float* out, int* hp_mem, int len, int channels, int Fs, int arch)
+{
+    (void)in; (void)cutoff_Hz; (void)hp_mem; (void)Fs; (void)arch;
+    for (unsigned long i = 0; i < channels * len; i++) out[i] = 0.0f;
+}
+
+extern "C" void __cdecl dc_reject(const float* in, float* out, int* hp_mem, int len, int channels, int Fs)
+{
+    (void)in; (void)hp_mem; (void)Fs;
+    for (int i = 0; i < channels * len; i++) out[i] = 0.0f;
+}
+"@
+    }
     if ($gain -ge 3) {
         Write-Log "Generating amplifier: 3x+ ONLY -> Multiplier = $($gain - 2) (GUI $gain x)" -Level Info
         $multiplier = $gain - 2
@@ -2666,7 +2690,9 @@ function New-SourceFiles {
         [System.IO.File]::WriteAllText($amp, $ampCode, [System.Text.Encoding]::ASCII)
         $ampContent = Get-Content $amp -Raw
         $cfgGain = [int]$Script:Config.AudioGainMultiplier
-        if ($cfgGain -ge 3) {
+        if ($cfgGain -gt 3) {
+            if ($ampContent -match '#define (GAIN_MULTIPLIER|Multiplier)\b') { Write-Log "Amplifier codegen error: >3x path must not define gain macros" -Level Error }
+        } elseif ($cfgGain -ge 3) {
             if ($ampContent -match '#define GAIN_MULTIPLIER') { Write-Log "Amplifier codegen error: 3x+ path must not contain GAIN_MULTIPLIER" -Level Error }
             if ($ampContent -match '#define Multiplier (-?\d+)') {
                 $expectedMult = $cfgGain - 2
