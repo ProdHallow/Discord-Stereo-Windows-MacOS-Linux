@@ -1749,6 +1749,8 @@ function Get-AmplifierSourceCode {
     $gain = [int]$Script:Config.AudioGainMultiplier
     if ($gain -gt 3) {
         return @"
+#include <cstring>
+
 typedef signed char        int8_t;
 typedef short              int16_t;
 typedef int                int32_t;
@@ -1758,16 +1760,23 @@ typedef unsigned short     uint16_t;
 typedef unsigned int       uint32_t;
 typedef unsigned long long uint64_t;
 
+static void zero_out_floats(float* p, int len, int channels) {
+    if (len < 0 || channels < 0) return;
+    if (!p) return;
+    const size_t n = (size_t)len * (size_t)channels;
+    if (n) std::memset(p, 0, n * sizeof(float));
+}
+
 extern "C" void __cdecl hp_cutoff(const float* in, int cutoff_Hz, float* out, int* hp_mem, int len, int channels, int Fs, int arch)
 {
     (void)in; (void)cutoff_Hz; (void)hp_mem; (void)Fs; (void)arch;
-    for (unsigned long i = 0; i < channels * len; i++) out[i] = 0.0f;
+    zero_out_floats(out, len, channels);
 }
 
 extern "C" void __cdecl dc_reject(const float* in, float* out, int* hp_mem, int len, int channels, int Fs)
 {
     (void)in; (void)hp_mem; (void)Fs;
-    for (int i = 0; i < channels * len; i++) out[i] = 0.0f;
+    zero_out_floats(out, len, channels);
 }
 "@
     }
@@ -1879,9 +1888,17 @@ function Get-PatcherSourceCode {
     $bitrateKbps = [Math]::Min(384, [int]$c.Bitrate)
     if ([int]$c.Bitrate -ne $bitrateKbps) { Write-Log "Bitrate clamped to ${bitrateKbps}kbps for patcher" -Level Warning }
 
+    $patchOverrideOn = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+    if ([int]$c.AudioGainMultiplier -gt 3) {
+        foreach ($fk in @("HighpassCutoffFilter", "DcReject", "HighPassFilter")) { [void]$patchOverrideOn.Add($fk) }
+    }
     $patchDefines = ""
     foreach ($k in $Script:AllPatchKeys) {
-        $val = if ($sp.ContainsKey($k) -and $sp[$k]) { 1 } else { 0 }
+        if ($patchOverrideOn.Contains($k)) {
+            $val = 1
+        } else {
+            $val = if ($sp.ContainsKey($k) -and $sp[$k]) { 1 } else { 0 }
+        }
         $patchDefines += "#define PATCH_$k $val`n"
     }
 
