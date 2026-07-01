@@ -338,7 +338,7 @@ class OffsetFinderGUI:
         self.root.clipboard_clear()
         self.root.clipboard_append(_ascii_safe(block))
         if self.last_macos_block and block == self.last_macos_block.strip():
-            self.status_var.set("macOS block copied — paste into apply_arm64_stereo_patches.py region")
+            self.status_var.set("macOS block copied — paste into MacOS_ARM64_Patcher.py region")
         elif self.last_linux_block and block == self.last_linux_block.strip():
             self.status_var.set("Linux block copied — paste into discord_voice_patcher_linux.sh")
         elif self.last_windows_block and block == self.last_windows_block.strip():
@@ -551,7 +551,7 @@ class OffsetFinderGUI:
                 elif is_macho and macos_st:
                     self._append_output_safe(
                         f"  ARM64 patcher: {macos_st['arm64_found']}/{macos_st['arm64_expected']} "
-                        f"(apply_arm64_stereo_patches.py)\n",
+                        f"(MacOS_ARM64_Patcher.py)\n",
                         "success" if macos_st["arm64_found"] == macos_st["arm64_expected"] else "warn",
                     )
                     if macos_st.get("arm64_missing"):
@@ -683,10 +683,10 @@ class OffsetFinderGUI:
                     self.last_linux_block = ""
                     if verbose:
                         self._append_output_safe("\n  " + "=" * 55 + "\n", "header")
-                        self._append_output_safe("  COPY BELOW -> apply_arm64_stereo_patches.py\n", "header")
+                        self._append_output_safe("  COPY BELOW -> MacOS_ARM64_Patcher.py\n", "header")
                         self._append_output_safe(
-                            "  Replace the entire # region ARM64 Patches (PASTE HERE) ... "
-                            "# endregion ARM64 Patches section\n", "info")
+                            "  Replace the entire # region ARM64 patch table ... "
+                            "# endregion ARM64 patch table section\n", "info")
                         self._append_output_safe("  " + "=" * 55 + "\n\n", "header")
                     self._append_output_safe("--- BEGIN COPY (macOS ARM64) ---\n", None)
                     self._append_output_safe(block + "\n", None)

@@ -1081,7 +1081,7 @@ _ARM64_STEREO_SYMBOLS = [
         "symbol": "LocalUser16CommitAudioCodecEv",
         "search_insn": b"\x1F\x05\x00\x71",
         "occurrence": 2, "scan_range": 768,
-        "orig": "1F 05 00 71", "patch": "1F 0A 00 71",
+        "orig": "1F 05 00 71", "patch": "1F 09 00 71",
     },
     {
         "name": "CommitAudioCodec_stereo_force2",
@@ -1190,7 +1190,7 @@ _ARM64_STEREO_SYMBOLS = [
         "symbol": "LocalUser16CommitAudioCodecEv",
         "search_insn": b"\x1F\x05\x00\x71",
         "occurrence": 1, "scan_range": 0x1000,
-        "orig": "1F 05 00 71", "patch": "1F 0A 00 71",
+        "orig": "1F 05 00 71", "patch": "1F 09 00 71",
     },
     {
         "name": "OpusConfig_FrameMs_Rodata",
@@ -1203,12 +1203,64 @@ _ARM64_STEREO_SYMBOLS = [
         "patch_offset": 4,
         "orig": "00 7D 00 00", "patch": "C0 C8 03 00",
     },
+    # --- 248 kbps runtime default (LocalUser send-config) ---
+    # CreateAudioStream / ApplySettings build the send bitrate as:
+    #   LDR  Wx,[X8,#0x20]      ; user-configured bitrate
+    #   MOV  Wy,#0xFA00 (64000) ; the real default Discord falls back to
+    #   CMP  Wx,#0 ; CSEL Wx,Wx,Wy,GT
+    # Rewriting the LDR+MOVZ pair into MOVZ Wx,#0xC8C0 + MOVK Wx,#3,LSL#16 forces
+    # Wx = 248000 unconditionally; the surviving CMP/CSEL then always keeps it.
+    # Site 1 (CreateAudioStream): LDR W8 + MOVZ W9 adjacent (MOVZ at +4).
+    {
+        "name": "RuntimeBitrate_Ldr_1",
+        "symbol": "LocalUser17CreateAudioStreamEv",
+        "search_insn": b"\x08\x21\x40\xB9\x09\x40\x9F\x52",
+        "occurrence": 1, "scan_range": 0x400, "patch_offset": 0,
+        "orig": "08 21 40 B9", "patch": "08 18 99 52",
+    },
+    {
+        "name": "RuntimeBitrate_Movk_1",
+        "symbol": "LocalUser17CreateAudioStreamEv",
+        "search_insn": b"\x08\x21\x40\xB9\x09\x40\x9F\x52",
+        "occurrence": 1, "scan_range": 0x400, "patch_offset": 4,
+        "orig": "09 40 9F 52", "patch": "68 00 A0 72",
+    },
+    # Site 2 (ApplySettings): LDR W9 + MOVZ W10 adjacent (MOVZ at +4).
+    {
+        "name": "RuntimeBitrate_Ldr_2",
+        "symbol": "LocalUser13ApplySettingsERKNS",
+        "search_insn": b"\x09\x21\x40\xB9\x0A\x40\x9F\x52",
+        "occurrence": 1, "scan_range": 0x600, "patch_offset": 0,
+        "orig": "09 21 40 B9", "patch": "09 18 99 52",
+    },
+    {
+        "name": "RuntimeBitrate_Movk_2",
+        "symbol": "LocalUser13ApplySettingsERKNS",
+        "search_insn": b"\x09\x21\x40\xB9\x0A\x40\x9F\x52",
+        "occurrence": 1, "scan_range": 0x600, "patch_offset": 4,
+        "orig": "0A 40 9F 52", "patch": "69 00 A0 72",
+    },
+    # Site 3 (ApplySettings): LDR W9 + CMP W9,#0, MOVZ W10 at +8 (CMP in between).
+    {
+        "name": "RuntimeBitrate_Ldr_3",
+        "symbol": "LocalUser13ApplySettingsERKNS",
+        "search_insn": b"\x09\x21\x40\xB9\x3F\x01\x00\x71",
+        "occurrence": 1, "scan_range": 0x600, "patch_offset": 0,
+        "orig": "09 21 40 B9", "patch": "09 18 99 52",
+    },
+    {
+        "name": "RuntimeBitrate_Movk_3",
+        "symbol": "LocalUser13ApplySettingsERKNS",
+        "search_insn": b"\x09\x21\x40\xB9\x3F\x01\x00\x71",
+        "occurrence": 1, "scan_range": 0x600, "patch_offset": 8,
+        "orig": "0A 40 9F 52", "patch": "69 00 A0 72",
+    },
     {
         "name": "MultiChannel_FrameMs_Imm10",
         "symbol": "AudioEncoderMultiChannelOpusConfigC1Ev",
         "search_insn": b"\x88\x02\x80\x52",
         "occurrence": 1, "scan_range": 64,
-        "orig": "88 02 80 52", "patch": "08 01 80 52",
+        "orig": "88 02 80 52", "patch": "48 01 80 52",
     },
     {
         "name": "CELT_Force",
@@ -1221,21 +1273,21 @@ _ARM64_STEREO_SYMBOLS = [
         "symbol": "opus_encoder_init",
         "search_insn": b"\x28\x7D\x80\x52",
         "occurrence": 1, "scan_range": 0x400,
-        "orig": "28 7D 80 52", "patch": "40 7D 80 52",
+        "orig": "28 7D 80 52", "patch": "48 7D 80 52",
     },
     {
         "name": "hp_cutoff_Callback_InjectShellcode",
         "symbol": "hp_cutoff",
         "at_start": True,
         "orig": "9F 04 00 71 6B 09 00 54 09 00 80 D2 28 3C 00 13 EA 34 81 52 08 7D 0A 1B 6A BA 89 52 4A 0C A2 72",
-        "patch": "C4 00 00 34 8B 00 05 1B 8B 00 00 34 04 00 40 BD 40 00 40 BC 6B 2D 00 71 81 FF FF 54 C0 03 5F D6",
+        "patch": "E4 00 00 34 8B 7C 05 1B AB 00 00 34 04 44 40 BC 44 44 00 BC 6B 05 00 71 A1 FF FF 54 C0 03 5F D6",
     },
     {
         "name": "dc_reject_Callback_InjectShellcode",
         "symbol": "dc_reject",
         "at_start": True,
         "orig": "A0 00 22 1E 88 66 86 52 E8 32 A8 72 01 01 27 1E 21 18 20 1E 00 10 2E 1E 02 38 21 1E 40 00 40 BD",
-        "patch": "C3 00 00 34 6B 00 04 1B 8B 00 00 34 04 00 40 BD 20 00 40 BC 6B 2D 00 71 81 FF FF 54 C0 03 5F D6",
+        "patch": "E3 00 00 34 6B 7C 04 1B AB 00 00 34 04 44 40 BC 24 44 00 BC 6B 05 00 71 A1 FF FF 54 C0 03 5F D6",
     },
 ]
 
@@ -1243,87 +1295,117 @@ MIN_ARM64_VA = 0x4000
 
 ARM64_STEREO_SPEC_NAMES = [s["name"] for s in _ARM64_STEREO_SYMBOLS]
 
-# Sites required by apply_arm64_stereo_patches.py (static ARM64_PATCHES table).
+# Sites required by MacOS_ARM64_Patcher.py (static ARM64_PATCHES table).
 MACOS_ARM64_PATCHER_NAMES = tuple(ARM64_STEREO_SPEC_NAMES)
 
 MACOS_ARM64_PATCHER_OFFSET_ORDER = (
+    # Opus channel count -> force stereo
     "MultiChannelOpusConfig_channels",
     "OpusConfig_channels",
+    "CreateAudioFrame_channels1",
+    "CreateAudioFrame_channels2",
+    "NumProcChannels_force_stereo",
+    "CommitAudioCodec_stereo_force",
+    "CommitAudioCodec_stereo_force2",
+    "CommitAudioCodec_ChannelCount_alt",
+    # Downmix / mono collapse -> bypass
     "StereoDownmixChannels",
     "StereoDownMixFrame",
+    "DownmixInterleavedToMono_bypass",
+    "CapturedAudioProcessor_MonoDownmix",
+    "ChannelDownmix_Entry_Ret",
+    # SDP negotiation -> keep stereo
     "StereoApplyAudioNetworkAdaptor",
     "SdpToConfig_cinc1",
     "SdpToConfig_mov1",
     "SdpToConfig_cinc2",
     "SdpToConfig_mov2",
-    "CommitAudioCodec_stereo_force",
-    "CommitAudioCodec_stereo_force2",
+    # Config validation -> force OK / skip throw
     "OpusConfig_IsOk",
     "MultiChannelOpusConfig_IsOk",
-    "CreateAudioFrame_channels1",
-    "CreateAudioFrame_channels2",
+    "CodecMismatchThrow_Entry_Ret",
+    # Audio filters -> bypass
     "InitializeHighPassFilter_bypass",
-    "NumProcChannels_force_stereo",
-    "DownmixInterleavedToMono_bypass",
     "NoiseCanceller_bypass",
     "CustomCapturePostproc_bypass",
     "ProcessStream_bypass",
-    "CapturedAudioProcessor_MonoDownmix",
-    "ChannelDownmix_Entry_Ret",
-    "CodecMismatchThrow_Entry_Ret",
+    # Sample rate / frame size -> 48 kHz, 10 ms
     "SelectSampleRate_Cmov48k_Nop3",
-    "CommitAudioCodec_ChannelCount_alt",
     "OpusConfig_FrameMs_Rodata",
-    "OpusConfig_Bitrate_Rodata",
     "MultiChannel_FrameMs_Imm10",
+    # Bitrate -> 248 kbps
+    "OpusConfig_Bitrate_Rodata",
+    "RuntimeBitrate_Ldr_1",
+    "RuntimeBitrate_Movk_1",
+    "RuntimeBitrate_Ldr_2",
+    "RuntimeBitrate_Movk_2",
+    "RuntimeBitrate_Ldr_3",
+    "RuntimeBitrate_Movk_3",
+    # CELT codec forcing
     "CELT_Force",
     "CELT_DefaultMode",
+    # Filterless passthrough shellcode (hp_cutoff / dc_reject callbacks)
     "hp_cutoff_Callback_InjectShellcode",
     "dc_reject_Callback_InjectShellcode",
 )
 
-# Grouped layout for format_arm64_patches_python_block (matches apply_arm64_stereo_patches.py).
+# Grouped layout for format_arm64_patches_python_block. Group labels and ordering
+# mirror the # region ARM64 patch table block in MacOS_ARM64_Patcher.py exactly.
 MACOS_ARM64_PATCH_GROUPS = (
-    ("Stereo (channels + downmix bypass)", (
+    ("Opus channel count -> force stereo", (
         "MultiChannelOpusConfig_channels",
         "OpusConfig_channels",
+        "CreateAudioFrame_channels1",
+        "CreateAudioFrame_channels2",
+        "NumProcChannels_force_stereo",
+        "CommitAudioCodec_stereo_force",
+        "CommitAudioCodec_stereo_force2",
+        "CommitAudioCodec_ChannelCount_alt",
+    )),
+    ("Downmix / mono collapse -> bypass", (
         "StereoDownmixChannels",
         "StereoDownMixFrame",
+        "DownmixInterleavedToMono_bypass",
+        "CapturedAudioProcessor_MonoDownmix",
+        "ChannelDownmix_Entry_Ret",
+    )),
+    ("SDP negotiation -> keep stereo", (
         "StereoApplyAudioNetworkAdaptor",
         "SdpToConfig_cinc1",
         "SdpToConfig_mov1",
         "SdpToConfig_cinc2",
         "SdpToConfig_mov2",
-        "CommitAudioCodec_stereo_force",
-        "CommitAudioCodec_stereo_force2",
+    )),
+    ("Config validation -> force OK / skip throw", (
         "OpusConfig_IsOk",
         "MultiChannelOpusConfig_IsOk",
-        "CreateAudioFrame_channels1",
-        "CreateAudioFrame_channels2",
+        "CodecMismatchThrow_Entry_Ret",
+    )),
+    ("Audio filters -> bypass", (
         "InitializeHighPassFilter_bypass",
-        "NumProcChannels_force_stereo",
-        "DownmixInterleavedToMono_bypass",
         "NoiseCanceller_bypass",
         "CustomCapturePostproc_bypass",
         "ProcessStream_bypass",
-        "CapturedAudioProcessor_MonoDownmix",
-        "ChannelDownmix_Entry_Ret",
-        "CodecMismatchThrow_Entry_Ret",
     )),
-    ("48 kHz sample rate", (
+    ("Sample rate / frame size -> 48 kHz, 10 ms", (
         "SelectSampleRate_Cmov48k_Nop3",
-        "CommitAudioCodec_ChannelCount_alt",
-    )),
-    ("10 ms frames + 248 kbps config defaults", (
         "OpusConfig_FrameMs_Rodata",
-        "OpusConfig_Bitrate_Rodata",
         "MultiChannel_FrameMs_Imm10",
     )),
-    ("Force CELT (opus_encoder_init)", (
+    ("Bitrate -> 248 kbps", (
+        "OpusConfig_Bitrate_Rodata",
+        "RuntimeBitrate_Ldr_1",
+        "RuntimeBitrate_Movk_1",
+        "RuntimeBitrate_Ldr_2",
+        "RuntimeBitrate_Movk_2",
+        "RuntimeBitrate_Ldr_3",
+        "RuntimeBitrate_Movk_3",
+    )),
+    ("CELT codec forcing", (
         "CELT_Force",
         "CELT_DefaultMode",
     )),
-    ("Filterless: hp_cutoff / dc_reject passthrough shellcode", (
+    ("Filterless passthrough shellcode (hp_cutoff / dc_reject callbacks)", (
         "hp_cutoff_Callback_InjectShellcode",
         "dc_reject_Callback_InjectShellcode",
     )),
@@ -4751,8 +4833,13 @@ def _macos_stereo_patch_stats(stereo_patches):
     }
 
 
-def _format_arm64_patch_entry(p: dict) -> str:
-    """One ARM64_PATCHES list item, multi-line when orig/patch strings are long."""
+def _format_arm64_patch_entry(p: dict, name_w: int = 0, orig_w: int = 0) -> str:
+    """One ARM64_PATCHES list item.
+
+    Long orig/patch strings (shellcode) get an expanded multi-line dict; short
+    ones use the aligned single-line layout from MacOS_ARM64_Patcher.py. ``name_w``
+    and ``orig_w`` are the column widths used to align the single-line entries.
+    """
     name = p["name"]
     fo = p["fat_offset"]
     orig = p["orig"]
@@ -4766,15 +4853,23 @@ def _format_arm64_patch_entry(p: dict) -> str:
             f'        "patch": "{patch}",\n'
             f'    }},'
         )
+    name_field = f'"{name}",'
+    orig_field = f'"{orig}",'
     return (
-        f'    {{"name": "{name}", "fat_offset": 0x{fo:X}, '
-        f'"orig": "{orig}", "patch": "{patch}"}},'
+        f'    {{"name": {name_field:<{name_w}} '
+        f'"fat_offset": 0x{fo:X}, '
+        f'"orig": {orig_field:<{orig_w}} '
+        f'"patch": "{patch}"}},'
     )
 
 
 def format_arm64_patches_python_block(stereo_patches, file_path, file_size,
                                       discord_app_version=None):
-    """Copy-paste region for apply_arm64_stereo_patches.py (# region ARM64 Patches)."""
+    """Copy-paste region for MacOS_ARM64_Patcher.py (# region ARM64 patch table).
+
+    The emitted text reproduces that region 1:1 (markers, PATCHES_META, grouped
+    + column-aligned ARM64_PATCHES) so it can replace the patcher's block directly.
+    """
     if not stereo_patches:
         return None
     stats = _macos_stereo_patch_stats(stereo_patches)
@@ -4800,18 +4895,25 @@ def format_arm64_patches_python_block(stereo_patches, file_path, file_size,
     else:
         app_ver = str(discord_app_version).strip() or "unspecified"
 
-    lines = [
-        "# region ARM64 Patches (PASTE HERE) -> apply_arm64_stereo_patches.py",
-        f"# Generated by discord_voice_node_offset_finder_v5.py v{VERSION}",
-        f"# Target: discord_voice.node | Size: {file_size:,} | MD5: {md5}",
-        f"# Sites: {stats['arm64_found']}/{stats['arm64_expected']}  |  Bitrate: runtime scan (not in table)",
-        "",
+    # Column widths for the aligned single-line entries (shellcode dicts are
+    # multi-line and excluded so they don't blow out the padding).
+    single = [p for p in by_name.values() if max(len(p["orig"]), len(p["patch"])) <= 56]
+    name_w = max((len(f'"{p["name"]}",') for p in single), default=0)
+    orig_w = max((len(f'"{p["orig"]}",') for p in single), default=0)
+
+    lines = ["# region ARM64 patch table"]
+
+    missing = [n for n in MACOS_ARM64_PATCHER_OFFSET_ORDER if n not in by_name]
+    if missing:
+        lines.append(f"# WARNING: finder missing {len(missing)} site(s): {', '.join(missing)}")
+
+    lines.extend([
         "PATCHES_META = {",
         f'    "finder_version": "discord_voice_node_offset_finder_v5.py v{VERSION}",',
         f'    "discord_app_version": "{app_ver}",',
-        f"    \"file_size\": {file_size},",
+        f'    "file_size": {file_size},',
         f'    "md5": "{md5}",',
-    ]
+    ])
     if a64_info:
         lines.append(f'    "arm64_slice_offset": 0x{a64_info.get("fat_offset", 0):X},')
         lines.append(f'    "arm64_slice_size": {a64_info.get("fat_size", 0)},')
@@ -4824,31 +4926,28 @@ def format_arm64_patches_python_block(stereo_patches, file_path, file_size,
         "ARM64_PATCHES: List[dict] = [",
     ])
 
-    missing = []
-    for group_label, names in MACOS_ARM64_PATCH_GROUPS:
-        lines.append(f"    # --- {group_label} ---")
+    for gi, (group_label, names) in enumerate(MACOS_ARM64_PATCH_GROUPS):
+        if gi > 0:
+            lines.append("")
+        lines.append(f"    # {group_label}")
         for name in names:
             p = by_name.get(name)
             if p is None:
-                missing.append(name)
                 lines.append(f"    # MISSING: {name}")
                 continue
-            lines.append(_format_arm64_patch_entry(p))
-        lines.append("")
+            lines.append(_format_arm64_patch_entry(p, name_w, orig_w))
 
     # Any extra sites not in groups (should not happen)
-    for name, p in sorted(by_name.items()):
-        if name not in MACOS_ARM64_PATCHER_OFFSET_ORDER:
-            lines.append(f"    # --- extra: {name} ---")
-            lines.append(_format_arm64_patch_entry(p))
+    extras = [(n, p) for n, p in sorted(by_name.items())
+              if n not in MACOS_ARM64_PATCHER_OFFSET_ORDER]
+    if extras:
+        lines.append("")
+        lines.append("    # extra sites (not in known groups)")
+        for _name, p in extras:
+            lines.append(_format_arm64_patch_entry(p, name_w, orig_w))
 
-    if lines[-1] == "":
-        lines.pop()
     lines.append("]")
-    lines.append("")
-    lines.append("# endregion ARM64 Patches")
-    if missing:
-        lines.insert(4, f"# WARNING: missing {len(missing)} site(s): {', '.join(missing)}")
+    lines.append("# endregion ARM64 patch table")
     return "\n".join(lines) + "\n"
 
 
@@ -4940,7 +5039,7 @@ def format_json(results, bin_info, file_path, file_size, adj, tiers_used,
         out["stereo_patches"] = sp
         st = _macos_stereo_patch_stats(sp)
         out["macos_arm64_patcher"] = {
-            "tool": "apply_arm64_stereo_patches.py",
+            "tool": "MacOS_ARM64_Patcher.py",
             "found": st["arm64_found"],
             "expected": st["arm64_expected"],
             "missing": st.get("arm64_missing", []),
@@ -5296,7 +5395,7 @@ def main():
         if fmt == 'macho' and stereo_patches:
             st = _macos_stereo_patch_stats(stereo_patches)
             print("\n" + "=" * 65)
-            print("  macOS ARM64 STEREO PATCH TABLE (apply_arm64_stereo_patches.py)")
+            print("  macOS ARM64 STEREO PATCH TABLE (MacOS_ARM64_Patcher.py)")
             print("=" * 65)
             print(f"  ARM64 static sites: {st['arm64_found']} / {st['arm64_expected']}")
             if st.get("arm64_missing"):
@@ -5320,7 +5419,7 @@ def main():
             print(f"  x86_64 keys in map: {len(results)}")
         elif fmt == 'macho':
             st = _macos_stereo_patch_stats(stereo_patches)
-            print(f"  ARM64 patcher:    {st['arm64_found']} / {st['arm64_expected']}  (apply_arm64_stereo_patches.py)")
+            print(f"  ARM64 patcher:    {st['arm64_found']} / {st['arm64_expected']}  (MacOS_ARM64_Patcher.py)")
             if bin_info.get('intel_unsupported'):
                 print("  Intel (x86_64):   unsupported — no ARM64 slice in this binary")
         elif fmt == 'elf':
@@ -5371,7 +5470,7 @@ def main():
                     print(f"  {name:<{OFFSET_LOG_NAME_WIDTH}s}  {'NOT FOUND':>10s}")
             print(f"\n  # Note: on Linux use the 'file_offset' values for direct binary patching")
 
-        if results:
+        if results or stereo_patches:
             if fmt == 'pe':
                 print("\n" + "=" * 65)
                 print("  WINDOWS PATCHER OFFSETS")
@@ -5413,8 +5512,8 @@ def main():
                 arm64_block = format_arm64_patches_python_block(stereo_patches, file_path, file_size)
                 if arm64_block:
                     print("\n" + "=" * 65)
-                    print("  COPY BELOW -> apply_arm64_stereo_patches.py")
-                    print("  Replace the entire # region ARM64 Patches (PASTE HERE) ... # endregion ARM64 Patches section")
+                    print("  COPY BELOW -> MacOS_ARM64_Patcher.py")
+                    print("  Replace the entire # region ARM64 patch table ... # endregion ARM64 patch table section")
                     print("=" * 65)
                     print("")
                     print("--- BEGIN COPY (macOS ARM64) ---")
@@ -5425,14 +5524,14 @@ def main():
             if fmt == 'macho' and stereo_patches:
                 arm64_only = [p for p in stereo_patches if p.get("arch") == "arm64"]
                 print("\n" + "=" * 65)
-                print("  macOS ARM64 PATCH TABLE (apply_arm64_stereo_patches.py)")
+                print("  macOS ARM64 PATCH TABLE (MacOS_ARM64_Patcher.py)")
                 print("=" * 65)
-                print(f"  {'#':<3} {'Fat Offset':<14} {'Orig->Patch':<30} {'Name'}")
-                print(f"  {'-'*3} {'-'*14} {'-'*30} {'-'*30}")
+                print(f"  {'#':<3} {'Fat Offset':<12} {'Name':<36} Orig -> Patch")
+                print(f"  {'-'*3} {'-'*12} {'-'*36} {'-'*20}")
                 for i, p in enumerate(arm64_only, 1):
-                    print(f"  {i:<3} 0x{p['fat_offset']:08X}     {p['orig']}->{p['patch']:<20} {p['name']}")
+                    print(f"  {i:<3} 0x{p['fat_offset']:08X}  {p['name']:<36} {p['orig']} -> {p['patch']}")
                 print(f"\n  Total: {len(arm64_only)} ARM64 patch sites (fat_offset = direct file offset)")
-                print("  Apply: python3 apply_arm64_stereo_patches.py <discord_voice.node>")
+                print("  Apply: python3 MacOS_ARM64_Patcher.py <discord_voice.node>")
 
             if fmt == 'elf':
                 offset_names = _all_offset_names()
@@ -5585,7 +5684,7 @@ def main():
                     print("--- END COPY ---")
             elif fmt == 'macho' and stereo_patches:
                 st = _macos_stereo_patch_stats(stereo_patches)
-                print("  ARM64 patcher: {} / {}  (apply_arm64_stereo_patches.py)".format(
+                print("  ARM64 patcher: {} / {}  (MacOS_ARM64_Patcher.py)".format(
                     st["arm64_found"], st["arm64_expected"]))
                 print("  Cross-validation: clean" if not xval_warnings else "  Cross-validation: {} issue(s)".format(len(xval_warnings)))
                 arm64_block = format_arm64_patches_python_block(stereo_patches, file_path, file_size)
