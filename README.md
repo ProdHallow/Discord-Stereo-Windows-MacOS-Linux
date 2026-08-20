@@ -1,67 +1,68 @@
-Discord Audio Collective - Discontinued
+<div align="center">
 
-«[!IMPORTANT]
-This project has been discontinued and is no longer maintained.»
+# Discord Audio Collective
 
-As of August 2026, active development of Discord Audio Collective and the Discord Stereo patching tools has ended.
+## DISCONTINUED
 
-This repository will remain available as an archive for research, reference, and historical purposes, but users should not expect future updates, compatibility fixes, new offsets, patched "discord_voice.node" builds, or support for future Discord releases.
+**This project is no longer maintained.**
 
-Why development ended
+</div>
 
-Discord's voice implementation changes frequently, and maintaining reliable patches across Windows, macOS, and Linux requires continuously reverse engineering new versions of "discord_voice.node".
+> [!IMPORTANT]
+> Active development of **Discord Audio Collective** ended in **August 2026**.
+>
+> This repository will remain available for research, reference, and archival purposes.
 
-I have decided to move away from actively reverse engineering Discord's audio node and focus my time on other projects.
+---
 
-The project accomplished what it originally set out to explore: modifying Discord's local voice processing to experiment with higher-quality, filterless, stereo audio.
+## Project Status
 
-What this means
+| | |
+|:---|:---|
+| **Development** | 🛑 Discontinued |
+| **Maintenance** | None |
+| **Support** | No longer provided |
+| **Future compatibility** | Not guaranteed |
 
-- Stereo Hub is no longer maintained.
-- Windows patchers are no longer maintained.
-- Linux patchers are no longer maintained.
-- macOS development and integration are no longer being pursued through this repository.
-- Offset Finder updates are discontinued.
-- New Discord versions may break existing patches at any time.
-- Existing patched nodes may eventually become incompatible.
-- Issues and pull requests may not receive responses.
-- No compatibility with future Discord releases is promised.
+---
 
-Can I still use it?
+## What This Means
 
-Yes, if the existing tools still work with your version of Discord.
+The following are no longer being maintained:
 
-Everything in this repository is being left available for anyone interested in experimenting with it, studying the implementation, or building upon the research.
+- Stereo Hub
+- Windows and Linux patchers
+- macOS integration
+- Offset Finder
+- Pre-patched `discord_voice.node` builds
+- Compatibility updates for new Discord releases
 
-Use the existing tools at your own risk.
+Discord updates may break the existing tools at any time.
 
-Discord updates can replace or change "discord_voice.node", and outdated binary patches may fail or behave unpredictably.
+---
 
-Forks and continued development
+## Can I Still Use It?
 
-Anyone interested in continuing the project is welcome to fork the repository and build upon the existing work.
+Yes. If the existing tools still work with your Discord version, you are free to continue using them.
 
-If another developer or community project continues this research, that project should be considered independent unless explicitly stated otherwise.
+Anyone interested in continuing the project is also welcome to **fork the repository** and build upon the existing research.
 
-Thank you
+> [!WARNING]
+> Outdated binary patches may fail or behave unpredictably on newer Discord builds. Use at your own risk.
 
-Thank you to everyone who tested builds, reported offsets, contributed research, helped with macOS and Linux development, shared discoveries, or simply used the project.
+---
 
-Special thanks to the people and projects that contributed to or worked alongside Discord Audio Collective:
+## Thank You
 
-"Shaun (sh6un)" (https://github.com/sh6un) · "UnpackedX" (https://codeberg.org/UnpackedX) · "Voice Playground" (https://discord-voice.xyz/) · "Oracle" (https://github.com/oracle-dsc) · "Loof-sys" (https://github.com/LOOF-sys) · "Hallow" (https://github.com/ProdHallow) · "Ascend" (https://github.com/bloodybapestas) · BluesCat · "Sikimzo" (https://github.com/sikimzo) · "CRÜE" (https://codeberg.org/DiscordStereoPatcher-macOS) · "HorrorPills / Geeko" (https://github.com/HorrorPills)
+Thank you to everyone who tested builds, reported offsets, contributed research, helped with development, or simply used the project.
 
-What started as an experiment grew into a cross-platform effort involving reverse engineering, binary patching, tooling, testing, and a community interested in getting better audio out of Discord.
+What started as an experiment grew into a cross-platform effort focused on **filterless, true stereo, high-quality Discord audio**.
 
 I appreciate everyone who was part of it.
 
 ---
 
-Repository status
-
-Status: 🛑 Discontinued / Archived
-Maintenance: None
-Future Discord compatibility: Not guaranteed
-Support: No longer provided
-
-«Disclaimer: This repository is preserved for research and experimentation. It is not affiliated with or endorsed by Discord Inc. Editing Discord client files may violate Discord's terms of service. Use at your own risk.»
+> [!NOTE]
+> This repository is preserved for **research and experimentation** and is not affiliated with Discord Inc.
+>
+> Editing Discord client files may violate Discord's terms of service.
