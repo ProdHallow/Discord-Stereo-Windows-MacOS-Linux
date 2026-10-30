@@ -1,11 +1,16 @@
 "use strict";
-const VoiceEngine = require('./discord_voice.node');
 const fs = require('fs');
 const os = require('os');
 const process = require('process');
 const path = require('path');
 const discordNative = globalThis.window?.DiscordNative;
 const isElectronRenderer = discordNative != null && discordNative.isRenderer;
+const RUN_MEDIA_HOST = false;
+const VoiceEngine = RUN_MEDIA_HOST
+    ?
+        require('./MediaHost').default
+    :
+        require('./discord_voice.node');
 const appSettings = isElectronRenderer ? discordNative.settings : global.appSettings;
 const features = isElectronRenderer ? discordNative.features : global.features;
 const mainArgv = isElectronRenderer ? discordNative.processUtils.getMainArgvSync() : [];
@@ -45,7 +50,7 @@ const offloadAdmControls = appSettings ? appSettings.getSync('offloadAdmControls
 const debugLogging = appSettings ? appSettings.getSync('debugLogging', true) : true;
 const maxLogBytesRaw = appSettings ? appSettings.getSync('maxLogBytes', 5000000) : 5000000;
 const maxLogBytes = Number.isFinite(maxLogBytesRaw) && maxLogBytesRaw > 0 ? Math.min(Math.trunc(maxLogBytesRaw), 0xffffffff) : 5000000;
-const asyncVideoInputDeviceInit = appSettings ? appSettings.getSync('asyncVideoInputDeviceInit', false) : false;
+const asyncVideoInputDeviceInit = process.platform === 'win32';
 function versionGreaterThanOrEqual(v1, v2) {
     const v1parts = v1.split('.').map(Number);
     const v2parts = v2.split('.').map(Number);
@@ -114,92 +119,6 @@ const useFakeVideoCapture = argv['use-fake-video-capture'];
 const useFileForFakeVideoCapture = argv['use-file-for-fake-video-capture'];
 const useFakeAudioCapture = argv['use-fake-audio-capture'];
 const useFilesForFakeAudioCapture = argv['use-files-for-fake-audio-capture'];
-features.declareSupported('voice_panning');
-features.declareSupported('voice_multiple_connections');
-features.declareSupported('media_devices');
-features.declareSupported('media_video');
-features.declareSupported('debug_logging');
-features.declareSupported('set_audio_device_by_id');
-features.declareSupported('set_video_device_by_id');
-features.declareSupported('loopback');
-features.declareSupported('experiment_config');
-features.declareSupported('remote_locus_network_control');
-features.declareSupported('simulcast');
-features.declareSupported('simulcast_bugfix');
-features.declareSupported('direct_video');
-features.declareSupported('electron_video');
-features.declareSupported('fixed_keyframe_interval');
-features.declareSupported('first_frame_callback');
-features.declareSupported('remote_user_multi_stream');
-features.declareSupported('go_live_hardware');
-features.declareSupported('bandwidth_estimation_experiments');
-features.declareSupported('mls_pairwise_fingerprints');
-features.declareSupported('soundshare');
-features.declareSupported('screen_soundshare');
-features.declareSupported('offload_adm_controls');
-features.declareSupported('audio_codec_red');
-features.declareSupported('sidechain_compression');
-features.declareSupported('async_video_input_device_init');
-features.declareSupported('port_aware_latency_testing');
-features.declareSupported('krisp_native_error');
-if (VoiceEngine.isSpatialAudioEnabled()) {
-    features.declareSupported('spatial_audio');
-}
-if (process.platform === 'darwin') {
-    features.declareSupported('screen_capture_kit');
-    if (versionGreaterThanOrEqual(os.release(), '23.0.0')) {
-        features.declareSupported('native_screenshare_picker');
-    }
-}
-if (process.platform === 'linux') {
-    const sessionType = process.env.XDG_SESSION_TYPE;
-    const isUnderWayland = sessionType?.startsWith('wayland') && process.env.WAYLAND_DISPLAY != null;
-    const currentDesktop = process.env.XDG_CURRENT_DESKTOP;
-    const isUnderGamescope = !isUnderWayland && currentDesktop?.includes('gamescope') && process.env.GAMESCOPE_WAYLAND_DISPLAY != null;
-    const isVaapiEnabled = VoiceEngine.isVaapiEnabled();
-    if (isUnderWayland) {
-        features.declareSupported('native_screenshare_picker');
-    }
-    if (isVaapiEnabled) {
-        features.declareSupported('vaapi');
-    }
-    if (isUnderGamescope && isVaapiEnabled) {
-        const runtimeDir = process.env.PIPEWIRE_RUNTIME_DIR || process.env.XDG_RUNTIME_DIR || process.env.USERPROFILE;
-        if (runtimeDir) {
-            const socketName = runtimeDir + '/' + (process.env.PIPEWIRE_REMOTE || 'pipewire-0');
-            const sstat = fs.statSync(socketName, { throwIfNoEntry: false });
-            if (sstat && sstat.isSocket()) {
-                features.declareSupported('gamescope_capture');
-            }
-        }
-    }
-}
-if (process.platform === 'win32'
-    || process.platform === 'linux'
-    || (process.platform === 'darwin' && versionGreaterThanOrEqual(os.release(), '16.0.0'))) {
-    features.declareSupported('mediapipe');
-    features.declareSupported('mediapipe_animated');
-}
-if (process.platform === 'win32' || process.platform === 'darwin' || process.platform === 'linux') {
-    features.declareSupported('image_quality_measurement');
-}
-if (process.platform === 'win32') {
-    features.declareSupported('voice_legacy_subsystem');
-    features.declareSupported('wumpus_video');
-    features.declareSupported('hybrid_video');
-    features.declareSupported('elevated_hook');
-    features.declareSupported('soundshare_loopback');
-    features.declareSupported('screen_previews');
-    features.declareSupported('window_previews');
-    features.declareSupported('audio_debug_state');
-    features.declareSupported('video_effects');
-    features.declareSupported('voice_experimental_subsystem');
-    features.declareSupported('voice_automatic_subsystem');
-    features.declareSupported('voice_subsystem_deferred_switch');
-    features.declareSupported('voice_bypass_system_audio_input_processing');
-    features.declareSupported('clips');
-    features.declareSupported('clips_thumbnail');
-}
 function bindConnectionInstance(instance) {
     return {
         destroy: () => instance.destroy(),
@@ -223,8 +142,11 @@ function bindConnectionInstance(instance) {
         setLocalMute: (userId, mute) => instance.setLocalMute(userId, mute),
         setUserPosition: (userId, position) => instance.setUserPosition(userId, position),
         fastUdpReconnect: () => instance.fastUdpReconnect(),
+        setUdpEndpoint: (address, port) => instance.setUdpEndpoint(address, port),
+        setOnConnectionFailedCallback: (callback) => instance.setOnConnectionFailedCallback(callback),
         setLocalPan: (userId, left, right) => instance.setLocalPan(userId, left, right),
         setDisableLocalVideo: (userId, disabled) => instance.setDisableLocalVideo(userId, disabled),
+        setAvSyncEnabled: (userId, enabled) => instance.setAvSyncEnabled(userId, enabled),
         setMinimumOutputDelay: (delay) => instance.setMinimumOutputDelay(delay),
         getEncryptionModes: (callback) => instance.getEncryptionModes(callback),
         configureConnectionRetries: (baseDelay, maxDelay, maxAttempts) => instance.configureConnectionRetries(baseDelay, maxDelay, maxAttempts),
@@ -262,6 +184,7 @@ function bindConnectionInstance(instance) {
         stopAllSamplesLocalPlayback: () => instance.stopAllSamplesLocalPlayback(),
         setOnVideoEncoderFallbackCallback: (callback) => instance.setOnVideoEncoderFallbackCallback(callback),
         setOnVideoDecoderFallbackCallback: (callback) => instance.setOnVideoDecoderFallbackCallback(callback),
+        setVideoCodecErrorCallback: (callback) => instance.setVideoCodecErrorCallback(callback),
         setOnRtcpMessageCallback: (callback) => instance.setOnRtcpMessageCallback?.(callback),
         presentDesktopSourcePicker: (style) => instance.presentDesktopSourcePicker(style),
     };
@@ -270,10 +193,19 @@ VoiceEngine.createTransport = VoiceEngine._createTransport;
 if (isElectronRenderer) {
     VoiceEngine.setImageDataAllocator((width, height) => new globalThis.window.ImageData(width, height));
 }
-VoiceEngine.createVoiceConnectionWithOptions = function (userId, connectionOptions, onConnectCallback) {
-    const instance = new VoiceEngine.VoiceConnection(userId, connectionOptions, onConnectCallback);
-    return bindConnectionInstance(instance);
-};
+if (RUN_MEDIA_HOST) {
+    const createVoiceRaw = VoiceEngine.createVoiceConnectionWithOptions;
+    VoiceEngine.createVoiceConnectionWithOptions = function (userId, connectionOptions, onConnectCallback) {
+        const instance = createVoiceRaw(userId, connectionOptions, onConnectCallback);
+        return bindConnectionInstance(instance);
+    };
+}
+else {
+    VoiceEngine.createVoiceConnectionWithOptions = function (userId, connectionOptions, onConnectCallback) {
+        const instance = new VoiceEngine.VoiceConnection(userId, connectionOptions, onConnectCallback);
+        return bindConnectionInstance(instance);
+    };
+}
 VoiceEngine.createOwnStreamConnectionWithOptions = VoiceEngine.createVoiceConnectionWithOptions;
 VoiceEngine.createReplayConnection = function (audioEngineId, callback, replayLog) {
     if (replayLog == null) {
@@ -307,9 +239,6 @@ VoiceEngine.queueAudioSubsystem = function (subsystem) {
 };
 VoiceEngine.setOffloadAdmControls = function (doOffload) {
     appSettings.set('offloadAdmControls', doOffload);
-};
-VoiceEngine.setAsyncVideoInputDeviceInitSetting = function (enable) {
-    appSettings.set('asyncVideoInputDeviceInit', enable);
 };
 VoiceEngine.setDebugLogging = function (enable) {
     if (appSettings == null) {
@@ -427,7 +356,6 @@ function log(level, message) {
     consoleLogFn(message);
     VoiceEngine.consoleLog(level, message);
 }
-console.log(`Initializing voice engine with audio subsystem: ${audioSubsystem}`);
 VoiceEngine.platform = process.platform;
 VoiceEngine.initialize({
     audioSubsystem,
@@ -454,4 +382,94 @@ VoiceEngine.setupMLPath = function () {
         VoiceEngine.setMLPath(mlPath);
     }
 };
+features.declareSupported('voice_panning');
+features.declareSupported('voice_multiple_connections');
+features.declareSupported('media_devices');
+features.declareSupported('media_video');
+features.declareSupported('debug_logging');
+features.declareSupported('set_audio_device_by_id');
+features.declareSupported('set_video_device_by_id');
+features.declareSupported('loopback');
+features.declareSupported('experiment_config');
+features.declareSupported('remote_locus_network_control');
+features.declareSupported('simulcast');
+features.declareSupported('simulcast_bugfix');
+features.declareSupported('direct_video');
+features.declareSupported('electron_video');
+features.declareSupported('fixed_keyframe_interval');
+features.declareSupported('first_frame_callback');
+features.declareSupported('remote_user_multi_stream');
+features.declareSupported('go_live_hardware');
+features.declareSupported('bandwidth_estimation_experiments');
+features.declareSupported('mls_pairwise_fingerprints');
+features.declareSupported('soundshare');
+features.declareSupported('screen_soundshare');
+features.declareSupported('offload_adm_controls');
+features.declareSupported('audio_codec_red');
+features.declareSupported('sidechain_compression');
+features.declareSupported('async_video_input_device_init');
+features.declareSupported('port_aware_latency_testing');
+features.declareSupported('krisp_native_error');
+features.declareSupported('udp_endpoint_update');
+features.declareSupported('activity_capture');
+if (VoiceEngine.isSpatialAudioEnabled()) {
+    features.declareSupported('spatial_audio');
+}
+if (process.platform === 'darwin') {
+    features.declareSupported('screen_capture_kit');
+    if (versionGreaterThanOrEqual(os.release(), '23.0.0')) {
+        features.declareSupported('native_screenshare_picker');
+    }
+}
+if (process.platform === 'linux') {
+    const sessionType = process.env.XDG_SESSION_TYPE;
+    const isUnderWayland = sessionType?.startsWith('wayland') && process.env.WAYLAND_DISPLAY != null;
+    const currentDesktop = process.env.XDG_CURRENT_DESKTOP;
+    const isUnderGamescope = !isUnderWayland && currentDesktop?.includes('gamescope') && process.env.GAMESCOPE_WAYLAND_DISPLAY != null;
+    const isVaapiEnabled = VoiceEngine.isVaapiEnabled();
+    if (isUnderWayland) {
+        features.declareSupported('native_screenshare_picker');
+    }
+    if (isVaapiEnabled) {
+        features.declareSupported('vaapi');
+    }
+    if (isUnderGamescope && isVaapiEnabled) {
+        const runtimeDir = process.env.PIPEWIRE_RUNTIME_DIR || process.env.XDG_RUNTIME_DIR || process.env.USERPROFILE;
+        if (runtimeDir) {
+            const socketName = runtimeDir + '/' + (process.env.PIPEWIRE_REMOTE || 'pipewire-0');
+            const sstat = fs.statSync(socketName, { throwIfNoEntry: false });
+            if (sstat && sstat.isSocket()) {
+                features.declareSupported('gamescope_capture');
+            }
+        }
+    }
+}
+if (process.platform === 'win32'
+    || process.platform === 'linux'
+    || (process.platform === 'darwin' && versionGreaterThanOrEqual(os.release(), '16.0.0'))) {
+    features.declareSupported('video_background_filter');
+}
+if (process.platform === 'win32' || process.platform === 'darwin' || process.platform === 'linux') {
+    features.declareSupported('image_quality_measurement');
+}
+if (process.platform === 'win32') {
+    features.declareSupported('voice_legacy_subsystem');
+    features.declareSupported('wumpus_video');
+    features.declareSupported('hybrid_video');
+    features.declareSupported('elevated_hook');
+    features.declareSupported('soundshare_loopback');
+    features.declareSupported('screen_previews');
+    features.declareSupported('window_previews');
+    features.declareSupported('audio_debug_state');
+    features.declareSupported('video_effects');
+    features.declareSupported('voice_experimental_subsystem');
+    features.declareSupported('voice_automatic_subsystem');
+    features.declareSupported('voice_subsystem_deferred_switch');
+    features.declareSupported('voice_bypass_system_audio_input_processing');
+    features.declareSupported('clips');
+    features.declareSupported('clips_thumbnail');
+    features.declareSupported('clips_recording_ready_events');
+    features.declareSupported('unified_capture_broker');
+    features.declareSupported('conjure_snapshot');
+}
 module.exports = VoiceEngine;
