@@ -20,7 +20,7 @@ $ProgressPreference = 'SilentlyContinue'
 
 Add-Type -AssemblyName System.Windows.Forms, System.Drawing -ErrorAction SilentlyContinue
 
-$Script:SCRIPT_VERSION = "24.3"
+$Script:SCRIPT_VERSION = "24.3.1"
 
 $Script:ProfileContract = 'discord-voice-patcher-profile-v10'
 
@@ -1558,16 +1558,23 @@ function Get-PreparedVoiceBackupPath {
     $folder = Join-Path $Script:Config.TempDir ('.voice-download-'+[guid]::NewGuid().ToString('N'))
     $module = Join-Path $folder 'module'
     [void][IO.Directory]::CreateDirectory($module)
+    $downloadStep = 'preparing the GitHub download'
     try {
         Write-Log 'Downloading the unpatched Stable voice module from GitHub...' -Level Info
         [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
         $repo = $Script:Config.VoiceRepository
         $headers = @{'User-Agent'='DiscordVoicePatcher';'Accept'='application/vnd.github+json';'Cache-Control'='no-cache'}
         $ref = [uri]::EscapeDataString($Script:Config.VoiceRepositoryRef)
-        $commit = Invoke-RestMethod -Uri "https://api.github.com/repos/$repo/commits/$ref" -UseBasicParsing -TimeoutSec 30 -ErrorAction Stop -Headers $headers
+        $requestUri = "https://api.github.com/repos/$repo/commits/$ref"
+        $downloadStep = "requesting $requestUri"
+        $commit = Invoke-RestMethod -Uri $requestUri -UseBasicParsing -TimeoutSec 30 -ErrorAction Stop -Headers $headers
         if ($commit.sha -notmatch '^[0-9a-f]{40}$') {throw 'GitHub did not return a valid revision.'}
         $remotePath = (@($Script:Config.VoiceRepositoryPath.Split('/') | ForEach-Object {[uri]::EscapeDataString($_)}) -join '/')
-        $files = @(Invoke-RestMethod -Uri "https://api.github.com/repos/$repo/contents/$($remotePath)?ref=$($commit.sha)" -UseBasicParsing -TimeoutSec 30 -ErrorAction Stop -Headers $headers)
+        $requestUri = "https://api.github.com/repos/$repo/contents/$($remotePath)?ref=$($commit.sha)"
+        $downloadStep = "requesting $requestUri"
+        # Assign directly: Invoke-RestMethod emits a JSON array as one object.
+        # Wrapping the command in @() nests it and joins all names into one URL.
+        $files = Invoke-RestMethod -Uri $requestUri -UseBasicParsing -TimeoutSec 30 -ErrorAction Stop -Headers $headers
         # Use the ordinary files in the existing stock folder, just as the old
         # patcher did. Pin all downloads to the same commit during an update.
         $files = @($files | Where-Object {$_.type -eq 'file' -and $_.name -match '^(discord_voice\.node|[a-zA-Z0-9_.-]+\.(js|dll|exe|tflite)|package\.json|manifest\.json)$'})
@@ -1580,9 +1587,11 @@ function Get-PreparedVoiceBackupPath {
             if ($seen.ContainsKey($destination)) {throw 'Duplicate stock download filename.'}
             $seen[$destination] = $true
             $uri = "https://raw.githubusercontent.com/$repo/$($commit.sha)/$remotePath/"+[uri]::EscapeDataString($file.name)
+            $downloadStep = "downloading $($file.name) from $uri"
             Receive-VoiceGitHubFile $uri $destination
             if ((Get-Item -LiteralPath $destination).Length -ne [long]$file.size) {throw "Incomplete download: $($file.name)"}
         }
+        $downloadStep = 'verifying the downloaded Stable module'
         [byte[]]$bytes = [IO.File]::ReadAllBytes((Join-Path $module 'discord_voice.node'))
         $match = Find-VoiceBuildProfile $bytes
         $hash = Get-BytesSha256 $bytes
@@ -1593,7 +1602,7 @@ function Get-PreparedVoiceBackupPath {
         $failure = $_
         try {Remove-VoiceStagingDirectory $folder $Script:Config.TempDir}
         catch {Write-Log ("Temporary download folder retained at ${folder}: $_") -Level Warning}
-        throw "Stock module download/verification failed: $failure No installed files changed. Upload the stock Stable node that matches the finder offsets, or use Patch local files only."
+        throw "Stock module download/verification failed while ${downloadStep}: $failure No installed files changed. Correct the reported problem and retry, or use Patch local files only."
     }
 }
 
